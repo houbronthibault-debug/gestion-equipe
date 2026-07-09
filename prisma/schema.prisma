@@ -1,0 +1,149 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// --- Enums ---------------------------------------------------------------
+
+enum StatutInscription {
+  EN_ATTENTE
+  VALIDE
+  REFUSE
+}
+
+enum RoleEquipe {
+  COACH
+  JOUEUR
+}
+
+enum TypeEvenement {
+  ENTRAINEMENT
+  STAGE
+  MATCH_AMICAL
+  CHAMPIONNAT
+  TOURNOI
+}
+
+enum RoleEvenement {
+  CAPITAINE
+  INTENDANT
+}
+
+enum StatutPresence {
+  EN_ATTENTE
+  CONFIRME
+  INFIRME
+}
+
+// --- Modèles ---------------------------------------------------------------
+
+model Utilisateur {
+  id                String            @id @default(cuid())
+  nomPrenom         String
+  pseudo            String            @unique
+  mail              String            @unique
+  telephone         String?
+  motDePasseHash    String
+  estAdmin          Boolean           @default(false)
+  estMembreBureau   Boolean           @default(false)
+  statutInscription StatutInscription @default(EN_ATTENTE)
+  createdAt         DateTime          @default(now())
+
+  appartenances         Appartenance[]
+  assignationsEvenement AssignationEvenement[]
+  participations        Participation[]
+  documentsDeposes      Document[]
+
+  @@map("utilisateurs")
+}
+
+model Equipe {
+  id  String @id @default(cuid())
+  nom String @unique
+
+  appartenances Appartenance[]
+  evenements    Evenement[]
+  documents     Document[]
+
+  @@map("equipes")
+}
+
+model Appartenance {
+  id            String     @id @default(cuid())
+  utilisateurId String
+  equipeId      String
+  role          RoleEquipe
+
+  utilisateur Utilisateur @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+  equipe      Equipe      @relation(fields: [equipeId], references: [id], onDelete: Cascade)
+
+  @@unique([utilisateurId, equipeId, role])
+  @@map("appartenances")
+}
+
+model Evenement {
+  id        String        @id @default(cuid())
+  equipeId  String
+  type      TypeEvenement
+  dateDebut DateTime
+  lieu      String
+  duree     String?
+  programme String?
+  objectif  String?
+  createdAt DateTime      @default(now())
+
+  equipe         Equipe                 @relation(fields: [equipeId], references: [id], onDelete: Cascade)
+  assignations   AssignationEvenement[]
+  participations Participation[]
+
+  @@map("evenements")
+}
+
+model AssignationEvenement {
+  id            String        @id @default(cuid())
+  utilisateurId String
+  evenementId   String
+  role          RoleEvenement
+
+  utilisateur Utilisateur @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+  evenement   Evenement   @relation(fields: [evenementId], references: [id], onDelete: Cascade)
+
+  @@unique([utilisateurId, evenementId, role])
+  @@map("assignations_evenement")
+}
+
+model Participation {
+  id                String         @id @default(cuid())
+  utilisateurId     String
+  evenementId       String
+  statutPresence    StatutPresence @default(EN_ATTENTE)
+  infosIntendanceOk Boolean        @default(false)
+
+  utilisateur Utilisateur @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+  evenement   Evenement   @relation(fields: [evenementId], references: [id], onDelete: Cascade)
+
+  @@unique([utilisateurId, evenementId])
+  @@map("participations")
+}
+
+model Document {
+  id            String   @id @default(cuid())
+  equipeId      String?
+  visibleClub   Boolean  @default(false)
+  deposeParId   String
+  fichierOuLien String
+  type          String
+  createdAt     DateTime @default(now())
+
+  equipe    Equipe?     @relation(fields: [equipeId], references: [id], onDelete: Cascade)
+  deposePar Utilisateur @relation(fields: [deposeParId], references: [id], onDelete: Restrict)
+
+  @@map("documents")
+}
