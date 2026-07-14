@@ -5,6 +5,7 @@ import Link from "next/link";
 import { PageHeader } from "@/components/PageHeader";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { envoyerEmail } from "@/lib/email";
 import {
   peutDeclencherRelance,
   peutDesignerRoles,
@@ -132,15 +133,43 @@ async function relancerRetardataires(equipeId: string, evenementId: string) {
     throw new Error("Non autorisé.");
   }
 
-  const nombreRetardataires = await prisma.participation.count({
+  const evenement = await prisma.evenement.findUniqueOrThrow({
+    where: { id: evenementId },
+  });
+
+  const retardataires = await prisma.participation.findMany({
     where: {
       evenementId,
       OR: [{ statutPresence: "EN_ATTENTE" }, { infosIntendanceOk: false }],
     },
+    include: { utilisateur: true },
   });
 
+  const lienEvenement = `${process.env.APP_URL}/equipes/${equipeId}/evenements/${evenementId}`;
+
+  const resultats = await Promise.all(
+    retardataires.map((retardataire) => {
+      const actions: string[] = [];
+      if (retardataire.statutPresence === "EN_ATTENTE") {
+        actions.push("confirmer ta présence");
+      }
+      if (!retardataire.infosIntendanceOk) {
+        actions.push("compléter tes infos d'intendance");
+      }
+
+      return envoyerEmail({
+        to: retardataire.utilisateur.mail,
+        subject: `Rappel — ${evenement.lieu}`,
+        html: `<p>Bonjour ${retardataire.utilisateur.nomPrenom},</p><p>Merci de ${actions.join(" et ")} pour l'événement au ${evenement.lieu}.</p><p><a href="${lienEvenement}">Voir l'événement</a></p>`,
+      });
+    }),
+  );
+
+  const envoyes = resultats.filter((r) => r.success).length;
+  const echecs = resultats.length - envoyes;
+
   redirect(
-    `/equipes/${equipeId}/evenements/${evenementId}?relance=${nombreRetardataires}`,
+    `/equipes/${equipeId}/evenements/${evenementId}?relance=${envoyes}&relanceEchecs=${echecs}`,
   );
 }
 
@@ -149,10 +178,10 @@ export default async function EvenementDetailPage({
   searchParams,
 }: {
   params: Promise<{ equipeId: string; evenementId: string }>;
-  searchParams: Promise<{ relance?: string }>;
+  searchParams: Promise<{ relance?: string; relanceEchecs?: string }>;
 }) {
   const { equipeId, evenementId } = await params;
-  const { relance } = await searchParams;
+  const { relance, relanceEchecs } = await searchParams;
   const session = await auth();
   const user = session!.user;
 
@@ -503,7 +532,10 @@ export default async function EvenementDetailPage({
 
           {relance !== undefined && (
             <p className="mt-3 rounded border border-zinc-300 bg-zinc-100 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900">
-              {`Relance envoyée à ${relance} participant(s). (Simulation — l'envoi d'email n'est pas encore câblé.)`}
+              {`Email de relance envoyé à ${relance} participant(s).`}
+              {relanceEchecs && relanceEchecs !== "0"
+                ? ` ${relanceEchecs} échec(s) d'envoi (voir la console serveur).`
+                : ""}
             </p>
           )}
 

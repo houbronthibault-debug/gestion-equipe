@@ -107,6 +107,10 @@ taille de base de données limitée (~0.5-1 Go), volume d'emails/jour limité.
 
 ## 8. Points encore ouverts
 
-- Durée par défaut / créneaux récurrents pour les entraînements ?
-- Format exact des rappels (email seul, ou notification in-app également) ?
+- ~~Durée par défaut / créneaux récurrents pour les entraînements ?~~
+  Décidé : pas de durée par défaut ni de récurrence. Le champ `duree` en texte libre
+  suffit, chaque événement se crée individuellement.
+- ~~Format exact des rappels (email seul, ou notification in-app également) ?~~
+  Décidé : email uniquement, via Resend (§6).
 - Suppression de compte / RGPD : process à définir avant mise en production
+  (décision reportée — pas d'implémentation avant qu'un process soit tranché)

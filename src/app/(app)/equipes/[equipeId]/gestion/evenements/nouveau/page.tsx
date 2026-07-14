@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { PageHeader } from "@/components/PageHeader";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { envoyerEmail } from "@/lib/email";
 import { peutCreerEvenement } from "@/lib/permissions";
 
 const TYPES_EVENEMENT = [
@@ -55,20 +56,32 @@ async function creerEvenement(equipeId: string, formData: FormData) {
     },
   });
 
-  const membres = await prisma.appartenance.findMany({
+  const appartenances = await prisma.appartenance.findMany({
     where: { equipeId },
-    select: { utilisateurId: true },
+    include: { utilisateur: true },
     distinct: ["utilisateurId"],
   });
 
-  if (membres.length > 0) {
+  if (appartenances.length > 0) {
     await prisma.participation.createMany({
-      data: membres.map((membre) => ({
-        utilisateurId: membre.utilisateurId,
+      data: appartenances.map((appartenance) => ({
+        utilisateurId: appartenance.utilisateurId,
         evenementId: evenement.id,
       })),
       skipDuplicates: true,
     });
+
+    const lienEvenement = `${process.env.APP_URL}/equipes/${equipeId}/evenements/${evenement.id}`;
+
+    await Promise.all(
+      appartenances.map((appartenance) =>
+        envoyerEmail({
+          to: appartenance.utilisateur.mail,
+          subject: `Nouvel événement — ${lieu}`,
+          html: `<p>Bonjour ${appartenance.utilisateur.nomPrenom},</p><p>Un nouvel événement (${typeValue.toLowerCase()}) a été créé au ${lieu}.</p><p><a href="${lienEvenement}">Voir l'événement et confirmer ta présence</a></p>`,
+        }),
+      ),
+    );
   }
 
   redirect(`/equipes/${equipeId}/evenements/${evenement.id}`);
@@ -89,7 +102,7 @@ export default async function CreationEvenementPage({
     <>
       <PageHeader
         title="Créer un événement"
-        description="Type, lieu, durée, programme et objectif. Les membres de l'équipe seront invités par défaut."
+        description="Type, lieu, durée, programme et objectif. Les membres de l'équipe seront invités par défaut et recevront un email de notification."
       />
       <form action={creer} className="flex max-w-lg flex-col gap-4">
         <div className="flex flex-col gap-1">
