@@ -91,7 +91,7 @@ export default async function GestionRolesPage({
                   type="submit"
                   className={
                     utilisateur.estAdmin
-                      ? "rounded bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white dark:bg-zinc-50 dark:text-zinc-900"
+                      ? "rounded bg-brand-violet px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-violet-dark"
                       : "rounded border border-zinc-300 px-3 py-1.5 text-sm font-medium dark:border-zinc-700"
                   }
                 >
@@ -110,7 +110,7 @@ export default async function GestionRolesPage({
                   type="submit"
                   className={
                     utilisateur.estMembreBureau
-                      ? "rounded bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white dark:bg-zinc-50 dark:text-zinc-900"
+                      ? "rounded bg-brand-violet px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-violet-dark"
                       : "rounded border border-zinc-300 px-3 py-1.5 text-sm font-medium dark:border-zinc-700"
                   }
                 >

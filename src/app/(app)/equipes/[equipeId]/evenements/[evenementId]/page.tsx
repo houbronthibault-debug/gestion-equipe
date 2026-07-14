@@ -334,7 +334,7 @@ export default async function EvenementDetailPage({
                   <button
                     type="submit"
                     disabled={participation.statutPresence === "CONFIRME"}
-                    className="rounded bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900"
+                    className="rounded bg-brand-violet px-4 py-2 text-sm font-medium text-white hover:bg-brand-violet-dark disabled:opacity-50"
                   >
                     Confirmer ma présence
                   </button>
@@ -387,7 +387,7 @@ export default async function EvenementDetailPage({
               </div>
               <button
                 type="submit"
-                className="self-start rounded bg-zinc-900 px-4 py-2 text-sm font-medium text-white dark:bg-zinc-50 dark:text-zinc-900"
+                className="self-start rounded bg-brand-violet px-4 py-2 text-sm font-medium text-white hover:bg-brand-violet-dark"
               >
                 Enregistrer
               </button>
@@ -457,7 +457,7 @@ export default async function EvenementDetailPage({
               </div>
               <button
                 type="submit"
-                className="mt-1 self-start rounded bg-zinc-900 px-4 py-2 text-sm font-medium text-white dark:bg-zinc-50 dark:text-zinc-900"
+                className="mt-1 self-start rounded bg-brand-violet px-4 py-2 text-sm font-medium text-white hover:bg-brand-violet-dark"
               >
                 Enregistrer
               </button>
@@ -570,7 +570,7 @@ export default async function EvenementDetailPage({
                 <button
                   type="submit"
                   disabled={retardataires.length === 0}
-                  className="mt-3 rounded bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900"
+                  className="mt-3 rounded bg-brand-violet px-4 py-2 text-sm font-medium text-white hover:bg-brand-violet-dark disabled:opacity-50"
                 >
                   Relancer les retardataires
                 </button>

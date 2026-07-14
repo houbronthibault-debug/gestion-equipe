@@ -74,7 +74,7 @@ export default async function GestionUtilisateursPage({
                   ({utilisateur.pseudo})
                 </span>
                 {utilisateur.estAdmin && (
-                  <span className="ml-2 rounded bg-zinc-900 px-2 py-0.5 text-xs font-medium text-white dark:bg-zinc-50 dark:text-zinc-900">
+                  <span className="ml-2 rounded bg-brand-violet px-2 py-0.5 text-xs font-medium text-white">
                     Admin
                   </span>
                 )}
