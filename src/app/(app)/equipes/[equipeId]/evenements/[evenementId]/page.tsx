@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
 
@@ -96,12 +96,38 @@ async function marquerInfosIntendance(
   revalidatePath(`/equipes/${equipeId}/evenements/${evenementId}`);
 }
 
+async function relancerRetardataires(equipeId: string, evenementId: string) {
+  "use server";
+
+  const session = await auth();
+  if (
+    !session?.user ||
+    !(await peutDeclencherRelance(session.user, evenementId))
+  ) {
+    throw new Error("Non autorisé.");
+  }
+
+  const nombreRetardataires = await prisma.participation.count({
+    where: {
+      evenementId,
+      OR: [{ statutPresence: "EN_ATTENTE" }, { infosIntendanceOk: false }],
+    },
+  });
+
+  redirect(
+    `/equipes/${equipeId}/evenements/${evenementId}?relance=${nombreRetardataires}`,
+  );
+}
+
 export default async function EvenementDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ equipeId: string; evenementId: string }>;
+  searchParams: Promise<{ relance?: string }>;
 }) {
   const { equipeId, evenementId } = await params;
+  const { relance } = await searchParams;
   const session = await auth();
   const user = session!.user;
 
@@ -115,6 +141,14 @@ export default async function EvenementDetailPage({
 
   const participation = await prisma.participation.findUnique({
     where: { utilisateurId_evenementId: { utilisateurId: user.id, evenementId } },
+  });
+
+  const retardataires = await prisma.participation.findMany({
+    where: {
+      evenementId,
+      OR: [{ statutPresence: "EN_ATTENTE" }, { infosIntendanceOk: false }],
+    },
+    include: { utilisateur: true },
   });
 
   const [
@@ -354,15 +388,54 @@ export default async function EvenementDetailPage({
           <h2 className="font-medium">Relance</h2>
           <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
             Le coach, l&apos;intendant ou l&apos;admin peut relancer les
-            retardataires.
+            participants n&apos;ayant pas confirmé leur présence ou pas
+            complété leurs infos d&apos;intendance.
           </p>
-          <button
-            type="button"
-            disabled={!peutRelancer}
-            className="mt-3 rounded bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900"
-          >
-            Relancer les retardataires
-          </button>
+
+          {relance !== undefined && (
+            <p className="mt-3 rounded border border-zinc-300 bg-zinc-100 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900">
+              {`Relance envoyée à ${relance} participant(s). (Simulation — l'envoi d'email n'est pas encore câblé.)`}
+            </p>
+          )}
+
+          {peutRelancer && (
+            <>
+              {retardataires.length === 0 ? (
+                <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">
+                  Aucun retardataire pour l&apos;instant.
+                </p>
+              ) : (
+                <ul className="mt-3 flex flex-col gap-1 text-sm text-zinc-600 dark:text-zinc-400">
+                  {retardataires.map((retardataire) => {
+                    const raisons: string[] = [];
+                    if (retardataire.statutPresence === "EN_ATTENTE") {
+                      raisons.push("présence non confirmée");
+                    }
+                    if (!retardataire.infosIntendanceOk) {
+                      raisons.push("infos intendance non complétées");
+                    }
+                    return (
+                      <li key={retardataire.id}>
+                        {retardataire.utilisateur.nomPrenom} —{" "}
+                        {raisons.join(", ")}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+              <form
+                action={relancerRetardataires.bind(null, equipeId, evenementId)}
+              >
+                <button
+                  type="submit"
+                  disabled={retardataires.length === 0}
+                  className="mt-3 rounded bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900"
+                >
+                  Relancer les retardataires
+                </button>
+              </form>
+            </>
+          )}
         </section>
       </div>
     </>
