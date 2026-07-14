@@ -2,9 +2,7 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// Tant qu'aucun domaine n'est vérifié dans Resend, seul cet expéditeur est
-// autorisé, et uniquement vers l'adresse du compte Resend (mode test).
-const FROM = "Gestion Équipe <onboarding@resend.dev>";
+const FROM = "Club PUC <club@club-puc.fr>";
 
 export async function envoyerEmail({
   to,
