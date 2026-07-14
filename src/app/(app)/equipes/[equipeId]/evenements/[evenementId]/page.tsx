@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import Link from "next/link";
 
 import { PageHeader } from "@/components/PageHeader";
@@ -11,6 +12,31 @@ import {
   peutEditerIntendance,
   peutModifierEvenement,
 } from "@/lib/permissions";
+
+async function definirPresence(
+  equipeId: string,
+  evenementId: string,
+  statut: "CONFIRME" | "INFIRME",
+) {
+  "use server";
+
+  const session = await auth();
+  if (!session?.user) {
+    throw new Error("Non autorisé.");
+  }
+
+  await prisma.participation.update({
+    where: {
+      utilisateurId_evenementId: {
+        utilisateurId: session.user.id,
+        evenementId,
+      },
+    },
+    data: { statutPresence: statut },
+  });
+
+  revalidatePath(`/equipes/${equipeId}/evenements/${evenementId}`);
+}
 
 export default async function EvenementDetailPage({
   params,
@@ -79,11 +105,59 @@ export default async function EvenementDetailPage({
 
         <section className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
           <h2 className="font-medium">Confirmation de présence</h2>
-          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-            {participation
-              ? `Ton statut actuel : ${participation.statutPresence}.`
-              : "Tu n'es pas inscrit comme participant à cet événement."}
-          </p>
+          {participation ? (
+            <>
+              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                Ton statut actuel :{" "}
+                <span className="font-medium">
+                  {participation.statutPresence === "CONFIRME" &&
+                    "Confirmé"}
+                  {participation.statutPresence === "INFIRME" && "Infirmé"}
+                  {participation.statutPresence === "EN_ATTENTE" &&
+                    "En attente"}
+                </span>
+                .
+              </p>
+              <div className="mt-3 flex gap-2">
+                <form
+                  action={definirPresence.bind(
+                    null,
+                    equipeId,
+                    evenementId,
+                    "CONFIRME",
+                  )}
+                >
+                  <button
+                    type="submit"
+                    disabled={participation.statutPresence === "CONFIRME"}
+                    className="rounded bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900"
+                  >
+                    Confirmer ma présence
+                  </button>
+                </form>
+                <form
+                  action={definirPresence.bind(
+                    null,
+                    equipeId,
+                    evenementId,
+                    "INFIRME",
+                  )}
+                >
+                  <button
+                    type="submit"
+                    disabled={participation.statutPresence === "INFIRME"}
+                    className="rounded border border-zinc-300 px-4 py-2 text-sm font-medium disabled:opacity-50 dark:border-zinc-700"
+                  >
+                    Infirmer ma présence
+                  </button>
+                </form>
+              </div>
+            </>
+          ) : (
+            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+              Tu n&apos;es pas inscrit comme participant à cet événement.
+            </p>
+          )}
         </section>
 
         <section className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
