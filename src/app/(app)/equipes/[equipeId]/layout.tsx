@@ -1,4 +1,8 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+
+import { auth } from "@/auth";
+import { peutConsulterEspaceEquipe, peutGererMembresEquipe } from "@/lib/permissions";
 
 export default async function EquipeLayout({
   children,
@@ -8,11 +12,21 @@ export default async function EquipeLayout({
   params: Promise<{ equipeId: string }>;
 }) {
   const { equipeId } = await params;
+  const session = await auth();
+  const user = session!.user;
+
+  if (!(await peutConsulterEspaceEquipe(user, equipeId))) {
+    redirect("/mes-equipes");
+  }
+
+  const peutGerer = await peutGererMembresEquipe(user, equipeId);
 
   const NAV_ITEMS = [
     { href: `/equipes/${equipeId}`, label: "Vue d'ensemble" },
     { href: `/equipes/${equipeId}/documents`, label: "Documents" },
-    { href: `/equipes/${equipeId}/gestion`, label: "Gestion équipe" },
+    ...(peutGerer
+      ? [{ href: `/equipes/${equipeId}/gestion`, label: "Gestion équipe" }]
+      : []),
   ];
 
   return (
