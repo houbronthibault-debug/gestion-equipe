@@ -1,10 +1,12 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 
 import { PageHeader } from "@/components/PageHeader";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import {
   peutDeclencherRelance,
+  peutDesignerRoles,
   peutEditerEspaceCapitaine,
   peutEditerIntendance,
   peutModifierEvenement,
@@ -31,13 +33,19 @@ export default async function EvenementDetailPage({
     where: { utilisateurId_evenementId: { utilisateurId: user.id, evenementId } },
   });
 
-  const [editableInfos, editableCapitaine, editableIntendance, peutRelancer] =
-    await Promise.all([
-      peutModifierEvenement(user, equipeId),
-      peutEditerEspaceCapitaine(user, evenementId),
-      peutEditerIntendance(user, evenementId),
-      peutDeclencherRelance(user, evenementId),
-    ]);
+  const [
+    editableInfos,
+    editableCapitaine,
+    editableIntendance,
+    peutRelancer,
+    peutDesigner,
+  ] = await Promise.all([
+    peutModifierEvenement(user, equipeId),
+    peutEditerEspaceCapitaine(user, evenementId),
+    peutEditerIntendance(user, evenementId),
+    peutDeclencherRelance(user, evenementId),
+    peutDesignerRoles(user, equipeId),
+  ]);
 
   return (
     <>
@@ -52,6 +60,14 @@ export default async function EvenementDetailPage({
           <p className="mt-2 text-xs text-zinc-500">
             {editableInfos ? "Éditable par toi." : "Lecture seule."}
           </p>
+          {peutDesigner && (
+            <Link
+              href={`/equipes/${equipeId}/gestion/evenements/${evenementId}/roles`}
+              className="mt-2 inline-block text-sm font-medium underline"
+            >
+              Désigner capitaine / intendant
+            </Link>
+          )}
         </section>
 
         <section className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
