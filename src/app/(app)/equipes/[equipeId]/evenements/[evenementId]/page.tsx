@@ -38,6 +38,31 @@ async function definirPresence(
   revalidatePath(`/equipes/${equipeId}/evenements/${evenementId}`);
 }
 
+async function modifierNotesCapitaine(
+  equipeId: string,
+  evenementId: string,
+  formData: FormData,
+) {
+  "use server";
+
+  const session = await auth();
+  if (
+    !session?.user ||
+    !(await peutEditerEspaceCapitaine(session.user, evenementId))
+  ) {
+    throw new Error("Non autorisé.");
+  }
+
+  const notesCapitaine = String(formData.get("notesCapitaine") ?? "").trim();
+
+  await prisma.evenement.update({
+    where: { id: evenementId },
+    data: { notesCapitaine: notesCapitaine || null },
+  });
+
+  revalidatePath(`/equipes/${equipeId}/evenements/${evenementId}`);
+}
+
 async function modifierIntendance(
   equipeId: string,
   evenementId: string,
@@ -254,11 +279,37 @@ export default async function EvenementDetailPage({
 
         <section className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
           <h2 className="font-medium">Espace capitaine</h2>
-          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-            {editableCapitaine
-              ? "Éditable par toi (capitaine désigné ou admin)."
-              : "Réservé au capitaine désigné et à l'admin."}
-          </p>
+
+          {editableCapitaine ? (
+            <form
+              action={modifierNotesCapitaine.bind(null, equipeId, evenementId)}
+              className="mt-3 flex flex-col gap-3"
+            >
+              <div className="flex flex-col gap-1">
+                <label htmlFor="notesCapitaine" className="text-sm font-medium">
+                  Notes du capitaine
+                </label>
+                <textarea
+                  id="notesCapitaine"
+                  name="notesCapitaine"
+                  rows={4}
+                  placeholder="ex. composition, consignes tactiques, convocations…"
+                  defaultValue={evenement.notesCapitaine ?? ""}
+                  className="rounded border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
+                />
+              </div>
+              <button
+                type="submit"
+                className="self-start rounded bg-zinc-900 px-4 py-2 text-sm font-medium text-white dark:bg-zinc-50 dark:text-zinc-900"
+              >
+                Enregistrer
+              </button>
+            </form>
+          ) : (
+            <p className="mt-1 whitespace-pre-wrap text-sm text-zinc-600 dark:text-zinc-400">
+              {evenement.notesCapitaine || "Aucune note pour l'instant."}
+            </p>
+          )}
         </section>
 
         <section className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">

@@ -90,19 +90,20 @@ model Appartenance {
 }
 
 model Evenement {
-  id        String        @id @default(cuid())
-  equipeId  String
-  type      TypeEvenement
-  dateDebut DateTime
-  lieu      String
-  duree     String?
-  programme String?
-  objectif  String?
-  trajet    String?
-  couchage  String?
-  repas     String?
-  reglement String?
-  createdAt DateTime      @default(now())
+  id             String        @id @default(cuid())
+  equipeId       String
+  type           TypeEvenement
+  dateDebut      DateTime
+  lieu           String
+  duree          String?
+  programme      String?
+  objectif       String?
+  notesCapitaine String?
+  trajet         String?
+  couchage       String?
+  repas          String?
+  reglement      String?
+  createdAt      DateTime      @default(now())
 
   equipe         Equipe                 @relation(fields: [equipeId], references: [id], onDelete: Cascade)
   assignations   AssignationEvenement[]
