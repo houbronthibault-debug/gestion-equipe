@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { PageHeader } from "@/components/PageHeader";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { DOCUMENTS_BUCKET, supabaseAdmin } from "@/lib/supabase";
 import {
   peutDeposerDocumentClub,
   peutDeposerDocumentEquipe,
@@ -19,9 +20,10 @@ async function deposerDocument(equipeId: string, formData: FormData) {
 
   const visibleClub = formData.get("visibleClub") === "on";
   const type = String(formData.get("type") ?? "").trim();
-  const fichierOuLien = String(formData.get("fichierOuLien") ?? "").trim();
+  const lien = String(formData.get("fichierOuLien") ?? "").trim();
+  const fichier = formData.get("fichier");
 
-  if (!type || !fichierOuLien) {
+  if (!type) {
     redirect(`/equipes/${equipeId}/gestion/documents?error=champs_requis`);
   }
 
@@ -32,6 +34,31 @@ async function deposerDocument(equipeId: string, formData: FormData) {
 
   if (!peutEquipe || (visibleClub && !peutClub)) {
     throw new Error("Non autorisé.");
+  }
+
+  let fichierOuLien: string;
+
+  if (fichier instanceof File && fichier.size > 0) {
+    const extension = fichier.name.includes(".")
+      ? fichier.name.slice(fichier.name.lastIndexOf("."))
+      : "";
+    const chemin = `${equipeId}/${crypto.randomUUID()}${extension}`;
+
+    const { error } = await supabaseAdmin.storage
+      .from(DOCUMENTS_BUCKET)
+      .upload(chemin, fichier, {
+        contentType: fichier.type || undefined,
+      });
+
+    if (error) {
+      redirect(`/equipes/${equipeId}/gestion/documents?error=upload_echoue`);
+    }
+
+    fichierOuLien = `storage://${chemin}`;
+  } else if (lien) {
+    fichierOuLien = lien;
+  } else {
+    redirect(`/equipes/${equipeId}/gestion/documents?error=champs_requis`);
   }
 
   await prisma.document.create({
@@ -62,7 +89,7 @@ export default async function DepotDocumentPage({
     <>
       <PageHeader
         title="Déposer un document"
-        description="Document d'équipe, ou visible par tout le club. Pour les fichiers volumineux (vidéos...), privilégie un lien externe plutôt qu'un envoi direct."
+        description="Fichier uploadé (PDF, Word, Excel, image — 20 Mo max), ou lien externe. Pour les fichiers volumineux (vidéos...), privilégie un lien externe."
       />
       <form action={deposer} className="flex max-w-lg flex-col gap-4">
         <div className="flex flex-col gap-1">
@@ -79,15 +106,26 @@ export default async function DepotDocumentPage({
           />
         </div>
         <div className="flex flex-col gap-1">
+          <label htmlFor="fichier" className="text-sm font-medium">
+            Fichier à uploader
+          </label>
+          <input
+            id="fichier"
+            name="fichier"
+            type="file"
+            accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.webp"
+            className="rounded border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
+          />
+        </div>
+        <div className="flex flex-col gap-1">
           <label htmlFor="fichierOuLien" className="text-sm font-medium">
-            Lien vers le fichier
+            Ou lien externe (si aucun fichier n&apos;est choisi ci-dessus)
           </label>
           <input
             id="fichierOuLien"
             name="fichierOuLien"
             type="url"
             placeholder="https://…"
-            required
             className="rounded border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
           />
         </div>
@@ -97,7 +135,13 @@ export default async function DepotDocumentPage({
         </label>
         {error === "champs_requis" && (
           <p className="text-sm text-red-600">
-            Merci de renseigner le type et le lien du document.
+            Merci de renseigner le type, et soit un fichier, soit un lien.
+          </p>
+        )}
+        {error === "upload_echoue" && (
+          <p className="text-sm text-red-600">
+            L&apos;upload du fichier a échoué (format ou taille non
+            autorisés). Réessaie ou utilise un lien externe.
           </p>
         )}
         <button
