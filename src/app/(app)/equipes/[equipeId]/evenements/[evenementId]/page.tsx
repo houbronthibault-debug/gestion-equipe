@@ -168,13 +168,25 @@ export default async function EvenementDetailPage({
     where: { utilisateurId_evenementId: { utilisateurId: user.id, evenementId } },
   });
 
-  const retardataires = await prisma.participation.findMany({
-    where: {
-      evenementId,
-      OR: [{ statutPresence: "EN_ATTENTE" }, { infosIntendanceOk: false }],
-    },
-    include: { utilisateur: true },
-  });
+  const [participants, assignations] = await Promise.all([
+    prisma.participation.findMany({
+      where: { evenementId },
+      include: { utilisateur: true },
+      orderBy: { utilisateur: { nomPrenom: "asc" } },
+    }),
+    prisma.assignationEvenement.findMany({ where: { evenementId } }),
+  ]);
+
+  const rolesParUtilisateur = new Map<string, string[]>();
+  for (const assignation of assignations) {
+    const roles = rolesParUtilisateur.get(assignation.utilisateurId) ?? [];
+    roles.push(assignation.role === "CAPITAINE" ? "Capitaine" : "Intendant");
+    rolesParUtilisateur.set(assignation.utilisateurId, roles);
+  }
+
+  const retardataires = participants.filter(
+    (p) => p.statutPresence === "EN_ATTENTE" || !p.infosIntendanceOk,
+  );
 
   const [
     editableInfos,
@@ -215,9 +227,55 @@ export default async function EvenementDetailPage({
 
         <section className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
           <h2 className="font-medium">Participants</h2>
-          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-            Liste des participants et de leur statut de présence.
-          </p>
+          {participants.length === 0 ? (
+            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+              Aucun participant pour l&apos;instant.
+            </p>
+          ) : (
+            <ul className="mt-3 flex flex-col gap-2">
+              {participants.map((p) => {
+                const roles = rolesParUtilisateur.get(p.utilisateurId) ?? [];
+                const libellePresence =
+                  p.statutPresence === "CONFIRME"
+                    ? "Confirmé"
+                    : p.statutPresence === "INFIRME"
+                      ? "Infirmé"
+                      : "En attente";
+                const couleurPresence =
+                  p.statutPresence === "CONFIRME"
+                    ? "text-green-600"
+                    : p.statutPresence === "INFIRME"
+                      ? "text-red-600"
+                      : "text-zinc-500";
+                return (
+                  <li
+                    key={p.id}
+                    className="flex flex-wrap items-center justify-between gap-2 text-sm"
+                  >
+                    <span>
+                      {p.utilisateur.nomPrenom}
+                      {roles.map((role) => (
+                        <span
+                          key={role}
+                          className="ml-2 rounded border border-zinc-300 px-1.5 py-0.5 text-xs font-medium dark:border-zinc-700"
+                        >
+                          {role}
+                        </span>
+                      ))}
+                    </span>
+                    <span className="text-zinc-600 dark:text-zinc-400">
+                      <span className={couleurPresence}>
+                        {libellePresence}
+                      </span>
+                      {" · "}
+                      infos intendance{" "}
+                      {p.infosIntendanceOk ? "complétées" : "à compléter"}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </section>
 
         <section className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
