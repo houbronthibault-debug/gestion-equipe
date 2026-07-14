@@ -21,6 +21,12 @@ export default async function GestionEquipePage({
           <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
             Ajout et retrait de joueurs de l&apos;équipe.
           </p>
+          <Link
+            href={`/equipes/${equipeId}/gestion/membres`}
+            className="mt-3 inline-block text-sm font-medium underline"
+          >
+            Gérer les membres
+          </Link>
         </section>
         <section className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
           <h2 className="font-medium">Événements</h2>
