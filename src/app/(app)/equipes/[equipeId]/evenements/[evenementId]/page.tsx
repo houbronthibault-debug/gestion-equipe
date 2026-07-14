@@ -38,6 +38,64 @@ async function definirPresence(
   revalidatePath(`/equipes/${equipeId}/evenements/${evenementId}`);
 }
 
+async function modifierIntendance(
+  equipeId: string,
+  evenementId: string,
+  formData: FormData,
+) {
+  "use server";
+
+  const session = await auth();
+  if (
+    !session?.user ||
+    !(await peutEditerIntendance(session.user, evenementId))
+  ) {
+    throw new Error("Non autorisé.");
+  }
+
+  const trajet = String(formData.get("trajet") ?? "").trim();
+  const couchage = String(formData.get("couchage") ?? "").trim();
+  const repas = String(formData.get("repas") ?? "").trim();
+  const reglement = String(formData.get("reglement") ?? "").trim();
+
+  await prisma.evenement.update({
+    where: { id: evenementId },
+    data: {
+      trajet: trajet || null,
+      couchage: couchage || null,
+      repas: repas || null,
+      reglement: reglement || null,
+    },
+  });
+
+  revalidatePath(`/equipes/${equipeId}/evenements/${evenementId}`);
+}
+
+async function marquerInfosIntendance(
+  equipeId: string,
+  evenementId: string,
+  valeur: boolean,
+) {
+  "use server";
+
+  const session = await auth();
+  if (!session?.user) {
+    throw new Error("Non autorisé.");
+  }
+
+  await prisma.participation.update({
+    where: {
+      utilisateurId_evenementId: {
+        utilisateurId: session.user.id,
+        evenementId,
+      },
+    },
+    data: { infosIntendanceOk: valeur },
+  });
+
+  revalidatePath(`/equipes/${equipeId}/evenements/${evenementId}`);
+}
+
 export default async function EvenementDetailPage({
   params,
 }: {
@@ -171,11 +229,125 @@ export default async function EvenementDetailPage({
 
         <section className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
           <h2 className="font-medium">Espace intendance</h2>
-          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-            {editableIntendance
-              ? "Éditable par toi (intendant désigné ou admin)."
-              : "Réservé à l'intendant désigné et à l'admin."}
-          </p>
+
+          {editableIntendance ? (
+            <form
+              action={modifierIntendance.bind(null, equipeId, evenementId)}
+              className="mt-3 flex flex-col gap-3"
+            >
+              <div className="flex flex-col gap-1">
+                <label htmlFor="trajet" className="text-sm font-medium">
+                  Trajet
+                </label>
+                <textarea
+                  id="trajet"
+                  name="trajet"
+                  rows={2}
+                  defaultValue={evenement.trajet ?? ""}
+                  className="rounded border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label htmlFor="couchage" className="text-sm font-medium">
+                  Couchage
+                </label>
+                <textarea
+                  id="couchage"
+                  name="couchage"
+                  rows={2}
+                  defaultValue={evenement.couchage ?? ""}
+                  className="rounded border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label htmlFor="repas" className="text-sm font-medium">
+                  Repas
+                </label>
+                <textarea
+                  id="repas"
+                  name="repas"
+                  rows={2}
+                  defaultValue={evenement.repas ?? ""}
+                  className="rounded border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label htmlFor="reglement" className="text-sm font-medium">
+                  Règlement
+                </label>
+                <textarea
+                  id="reglement"
+                  name="reglement"
+                  rows={2}
+                  defaultValue={evenement.reglement ?? ""}
+                  className="rounded border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
+                />
+              </div>
+              <button
+                type="submit"
+                className="mt-1 self-start rounded bg-zinc-900 px-4 py-2 text-sm font-medium text-white dark:bg-zinc-50 dark:text-zinc-900"
+              >
+                Enregistrer
+              </button>
+            </form>
+          ) : (
+            <dl className="mt-3 flex flex-col gap-2 text-sm">
+              <div>
+                <dt className="font-medium">Trajet</dt>
+                <dd className="text-zinc-600 dark:text-zinc-400">
+                  {evenement.trajet || "Non renseigné."}
+                </dd>
+              </div>
+              <div>
+                <dt className="font-medium">Couchage</dt>
+                <dd className="text-zinc-600 dark:text-zinc-400">
+                  {evenement.couchage || "Non renseigné."}
+                </dd>
+              </div>
+              <div>
+                <dt className="font-medium">Repas</dt>
+                <dd className="text-zinc-600 dark:text-zinc-400">
+                  {evenement.repas || "Non renseigné."}
+                </dd>
+              </div>
+              <div>
+                <dt className="font-medium">Règlement</dt>
+                <dd className="text-zinc-600 dark:text-zinc-400">
+                  {evenement.reglement || "Non renseigné."}
+                </dd>
+              </div>
+            </dl>
+          )}
+
+          {participation && (
+            <div className="mt-4 border-t border-zinc-200 pt-3 dark:border-zinc-800">
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                Mes infos :{" "}
+                <span className="font-medium">
+                  {participation.infosIntendanceOk
+                    ? "Complétées"
+                    : "À compléter"}
+                </span>
+              </p>
+              <form
+                action={marquerInfosIntendance.bind(
+                  null,
+                  equipeId,
+                  evenementId,
+                  !participation.infosIntendanceOk,
+                )}
+              >
+                <button
+                  type="submit"
+                  className="mt-2 rounded border border-zinc-300 px-4 py-2 text-sm font-medium dark:border-zinc-700"
+                >
+                  {participation.infosIntendanceOk
+                    ? "Marquer comme à compléter"
+                    : "Marquer mes infos comme complétées"}
+                </button>
+              </form>
+            </div>
+          )}
         </section>
 
         <section className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">

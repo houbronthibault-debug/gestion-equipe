@@ -98,6 +98,10 @@ model Evenement {
   duree     String?
   programme String?
   objectif  String?
+  trajet    String?
+  couchage  String?
+  repas     String?
+  reglement String?
   createdAt DateTime      @default(now())
 
   equipe         Equipe                 @relation(fields: [equipeId], references: [id], onDelete: Cascade)
