@@ -86,7 +86,7 @@ async function ajouterQuestionIntendance(
     .map((ligne) => ligne.trim())
     .filter((ligne) => ligne.length > 0);
 
-  if (!libelle || options.length === 0) {
+  if (!libelle) {
     redirect(
       `/equipes/${equipeId}/evenements/${evenementId}?error=question_invalide`,
     );
@@ -145,10 +145,26 @@ async function repondreIntendance(
 
   const questions = await prisma.questionIntendance.findMany({
     where: { evenementId },
-    select: { id: true },
+    select: { id: true, options: { select: { id: true } } },
   });
 
   for (const question of questions) {
+    if (question.options.length === 0) {
+      const reponseLibre = String(
+        formData.get(`q_${question.id}_autre`) ?? "",
+      ).trim();
+      if (!reponseLibre) continue;
+
+      await prisma.reponseIntendance.upsert({
+        where: {
+          questionId_utilisateurId: { questionId: question.id, utilisateurId },
+        },
+        update: { optionId: null, reponseLibre },
+        create: { questionId: question.id, utilisateurId, reponseLibre },
+      });
+      continue;
+    }
+
     const valeur = formData.get(`q_${question.id}`);
     if (!valeur) continue;
 
@@ -373,9 +389,9 @@ export default async function EvenementDetailPage({
                 const roles = rolesParUtilisateur.get(p.utilisateurId) ?? [];
                 const libellePresence =
                   p.statutPresence === "CONFIRME"
-                    ? "Confirmé"
+                    ? "Présent"
                     : p.statutPresence === "INFIRME"
-                      ? "Infirmé"
+                      ? "Absent"
                       : "En attente";
                 const couleurPresence =
                   p.statutPresence === "CONFIRME"
@@ -428,8 +444,8 @@ export default async function EvenementDetailPage({
                 Ton statut actuel :{" "}
                 <span className="font-medium">
                   {participation.statutPresence === "CONFIRME" &&
-                    "Confirmé"}
-                  {participation.statutPresence === "INFIRME" && "Infirmé"}
+                    "Présent"}
+                  {participation.statutPresence === "INFIRME" && "Absent"}
                   {participation.statutPresence === "EN_ATTENTE" &&
                     "En attente"}
                 </span>
@@ -449,7 +465,7 @@ export default async function EvenementDetailPage({
                     disabled={participation.statutPresence === "CONFIRME"}
                     className="rounded bg-brand-violet px-4 py-2 text-sm font-medium text-white hover:bg-brand-violet-dark disabled:opacity-50"
                   >
-                    Confirmer ma présence
+                    Présent
                   </button>
                 </form>
                 <form
@@ -465,7 +481,7 @@ export default async function EvenementDetailPage({
                     disabled={participation.statutPresence === "INFIRME"}
                     className="rounded border border-zinc-300 px-4 py-2 text-sm font-medium disabled:opacity-50 dark:border-zinc-700"
                   >
-                    Infirmer ma présence
+                    Absent
                   </button>
                 </form>
               </div>
@@ -539,13 +555,13 @@ export default async function EvenementDetailPage({
                   <textarea
                     name="optionsTexte"
                     rows={3}
-                    placeholder={"Une option par ligne, ex. :\nVoiture\nTrain\nCovoiturage"}
-                    required
+                    placeholder={"Une option par ligne, ex. :\nVoiture\nTrain\nCovoiturage\n\nLaisse vide pour une question à réponse libre."}
                     className="rounded border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
                   />
                   <p className="text-xs text-zinc-500">
-                    Une option &quot;Autre&quot; en texte libre est ajoutée
-                    automatiquement pour chaque joueur.
+                    Avec des options, une option &quot;Autre&quot; en texte
+                    libre est ajoutée automatiquement. Sans option, la
+                    question devient une simple réponse libre.
                   </p>
                   <button
                     type="submit"
@@ -556,8 +572,7 @@ export default async function EvenementDetailPage({
                 </form>
                 {error === "question_invalide" && (
                   <p className="mt-2 text-sm text-red-600">
-                    Merci de renseigner l&apos;intitulé et au moins une
-                    option.
+                    Merci de renseigner l&apos;intitulé de la question.
                   </p>
                 )}
               </div>
@@ -579,7 +594,11 @@ export default async function EvenementDetailPage({
                         <span>
                           {question.libelle}{" "}
                           <span className="text-zinc-500">
-                            ({question.options.map((o) => o.libelle).join(", ")})
+                            (
+                            {question.options.length > 0
+                              ? question.options.map((o) => o.libelle).join(", ")
+                              : "réponse libre"}
+                            )
                           </span>
                         </span>
                         <form
@@ -616,6 +635,27 @@ export default async function EvenementDetailPage({
                       const maReponse = question.reponses.find(
                         (r) => r.utilisateurId === user.id,
                       );
+                      if (question.options.length === 0) {
+                        return (
+                          <div key={question.id} className="flex flex-col gap-1">
+                            <label
+                              htmlFor={`q${question.id}-libre`}
+                              className="text-sm"
+                            >
+                              {question.libelle}
+                            </label>
+                            <input
+                              type="text"
+                              id={`q${question.id}-libre`}
+                              name={`q_${question.id}_autre`}
+                              defaultValue={maReponse?.reponseLibre ?? ""}
+                              placeholder="Ta réponse…"
+                              className="rounded border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+                            />
+                          </div>
+                        );
+                      }
+
                       return (
                         <div key={question.id} className="flex flex-col gap-1">
                           <p className="text-sm">{question.libelle}</p>
