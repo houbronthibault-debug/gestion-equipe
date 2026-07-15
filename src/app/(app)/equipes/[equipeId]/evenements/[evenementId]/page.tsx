@@ -128,6 +128,7 @@ async function retirerQuestionIntendance(
   await prisma.questionIntendance.delete({ where: { id: questionId } });
 
   revalidatePath(`/equipes/${equipeId}/evenements/${evenementId}`);
+  redirect(`/equipes/${equipeId}/evenements/${evenementId}#intendance`);
 }
 
 async function repondreIntendance(
@@ -278,10 +279,12 @@ export default async function EvenementDetailPage({
     relance?: string;
     relanceEchecs?: string;
     error?: string;
+    confirmerSuppression?: string;
   }>;
 }) {
   const { equipeId, evenementId } = await params;
-  const { relance, relanceEchecs, error } = await searchParams;
+  const { relance, relanceEchecs, error, confirmerSuppression } =
+    await searchParams;
   const session = await auth();
   const user = session!.user;
 
@@ -531,7 +534,10 @@ export default async function EvenementDetailPage({
         )}
 
         {concerneIntendanceEtCapitaine && (
-          <section className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+          <section
+            id="intendance"
+            className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800"
+          >
             <h2 className="font-medium">Espace intendance</h2>
 
             {editableIntendance && (
@@ -586,42 +592,91 @@ export default async function EvenementDetailPage({
               <>
                 {editableIntendance && (
                   <ul className="mt-4 flex flex-col gap-2">
-                    {questions.map((question) => (
-                      <li
-                        key={question.id}
-                        className="flex items-center justify-between gap-2 text-sm"
-                      >
-                        <span>
-                          {question.libelle}{" "}
-                          <span className="text-zinc-500">
-                            (
-                            {question.options.length > 0
-                              ? question.options.map((o) => o.libelle).join(", ")
-                              : "réponse libre"}
-                            )
-                          </span>
-                        </span>
-                        <form
-                          action={retirerQuestionIntendance.bind(
-                            null,
-                            equipeId,
-                            evenementId,
+                    {questions.map((question) => {
+                      const nombreReponses = question.reponses.length;
+                      const enConfirmation =
+                        confirmerSuppression === question.id;
+
+                      return (
+                        <li key={question.id} className="text-sm">
+                          <div className="flex items-center justify-between gap-2">
+                            <span>
+                              {question.libelle}{" "}
+                              <span className="text-zinc-500">
+                                (
+                                {question.options.length > 0
+                                  ? question.options
+                                      .map((o) => o.libelle)
+                                      .join(", ")
+                                  : "réponse libre"}
+                                )
+                              </span>
+                            </span>
+                            {nombreReponses === 0 || enConfirmation ? null : (
+                              <Link
+                                href={`/equipes/${equipeId}/evenements/${evenementId}?confirmerSuppression=${question.id}#intendance`}
+                                className="rounded border border-zinc-300 px-2 py-1 text-xs font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-900"
+                              >
+                                Retirer
+                              </Link>
+                            )}
+                            {nombreReponses === 0 && (
+                              <form
+                                action={retirerQuestionIntendance.bind(
+                                  null,
+                                  equipeId,
+                                  evenementId,
+                                )}
+                              >
+                                <input
+                                  type="hidden"
+                                  name="questionId"
+                                  value={question.id}
+                                />
+                                <button
+                                  type="submit"
+                                  className="rounded border border-zinc-300 px-2 py-1 text-xs font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-900"
+                                >
+                                  Retirer
+                                </button>
+                              </form>
+                            )}
+                          </div>
+                          {enConfirmation && nombreReponses > 0 && (
+                            <div className="mt-2 flex items-center gap-2 rounded border border-red-300 bg-red-50 px-3 py-2 dark:border-red-900 dark:bg-red-950">
+                              <p className="flex-1 text-xs text-red-700 dark:text-red-400">
+                                {`${nombreReponses} joueur(s) ont déjà répondu à cette question. Les supprimer aussi ?`}
+                              </p>
+                              <form
+                                action={retirerQuestionIntendance.bind(
+                                  null,
+                                  equipeId,
+                                  evenementId,
+                                )}
+                              >
+                                <input
+                                  type="hidden"
+                                  name="questionId"
+                                  value={question.id}
+                                />
+                                <button
+                                  type="submit"
+                                  className="rounded bg-red-600 px-2 py-1 text-xs font-medium text-white hover:bg-red-700"
+                                >
+                                  Confirmer la suppression
+                                </button>
+                              </form>
+                              <Link
+                                href={`/equipes/${equipeId}/evenements/${evenementId}#intendance`}
+                                className="rounded border border-zinc-300 px-2 py-1 text-xs font-medium dark:border-zinc-700"
+                              >
+                                Annuler
+                              </Link>
+                            </div>
                           )}
-                        >
-                          <input
-                            type="hidden"
-                            name="questionId"
-                            value={question.id}
-                          />
-                          <button
-                            type="submit"
-                            className="rounded border border-zinc-300 px-2 py-1 text-xs font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-900"
-                          >
-                            Retirer
-                          </button>
-                        </form>
-                      </li>
-                    ))}
+                        </li>
+                      );
+                    })}
                   </ul>
                 )}
 
