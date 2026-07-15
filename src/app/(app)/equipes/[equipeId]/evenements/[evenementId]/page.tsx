@@ -625,7 +625,7 @@ export default async function EvenementDetailPage({
                   </ul>
                 )}
 
-                {editableIntendance && (
+                {(editableIntendance || editableInfos) && (
                   <div className="mt-4 overflow-x-auto">
                     <h3 className="mb-2 text-sm font-medium">
                       Réponses des joueurs
