@@ -61,6 +61,7 @@ model Utilisateur {
   assignationsEvenement AssignationEvenement[]
   participations        Participation[]
   documentsDeposes      Document[]
+  reponsesIntendance    ReponseIntendance[]
 
   @@map("utilisateurs")
 }
@@ -99,15 +100,12 @@ model Evenement {
   programme      String?
   objectif       String?
   notesCapitaine String?
-  trajet         String?
-  couchage       String?
-  repas          String?
-  reglement      String?
   createdAt      DateTime      @default(now())
 
-  equipe         Equipe                 @relation(fields: [equipeId], references: [id], onDelete: Cascade)
-  assignations   AssignationEvenement[]
-  participations Participation[]
+  equipe              Equipe                 @relation(fields: [equipeId], references: [id], onDelete: Cascade)
+  assignations        AssignationEvenement[]
+  participations      Participation[]
+  questionsIntendance QuestionIntendance[]
 
   @@map("evenements")
 }
@@ -126,17 +124,58 @@ model AssignationEvenement {
 }
 
 model Participation {
-  id                String         @id @default(cuid())
-  utilisateurId     String
-  evenementId       String
-  statutPresence    StatutPresence @default(EN_ATTENTE)
-  infosIntendanceOk Boolean        @default(false)
+  id             String         @id @default(cuid())
+  utilisateurId  String
+  evenementId    String
+  statutPresence StatutPresence @default(EN_ATTENTE)
 
   utilisateur Utilisateur @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
   evenement   Evenement   @relation(fields: [evenementId], references: [id], onDelete: Cascade)
 
   @@unique([utilisateurId, evenementId])
   @@map("participations")
+}
+
+model QuestionIntendance {
+  id          String   @id @default(cuid())
+  evenementId String
+  libelle     String
+  ordre       Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  evenement Evenement           @relation(fields: [evenementId], references: [id], onDelete: Cascade)
+  options   OptionIntendance[]
+  reponses  ReponseIntendance[]
+
+  @@map("questions_intendance")
+}
+
+model OptionIntendance {
+  id         String @id @default(cuid())
+  questionId String
+  libelle    String
+  ordre      Int    @default(0)
+
+  question QuestionIntendance  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  reponses ReponseIntendance[]
+
+  @@map("options_intendance")
+}
+
+model ReponseIntendance {
+  id            String   @id @default(cuid())
+  questionId    String
+  utilisateurId String
+  optionId      String?
+  reponseLibre  String?
+  updatedAt     DateTime @updatedAt
+
+  question    QuestionIntendance @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  utilisateur Utilisateur        @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+  option      OptionIntendance?  @relation(fields: [optionId], references: [id], onDelete: SetNull)
+
+  @@unique([questionId, utilisateurId])
+  @@map("reponses_intendance")
 }
 
 model Document {

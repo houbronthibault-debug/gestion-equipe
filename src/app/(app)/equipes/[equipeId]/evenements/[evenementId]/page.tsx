@@ -64,7 +64,7 @@ async function modifierNotesCapitaine(
   revalidatePath(`/equipes/${equipeId}/evenements/${evenementId}`);
 }
 
-async function modifierIntendance(
+async function ajouterQuestionIntendance(
   equipeId: string,
   evenementId: string,
   formData: FormData,
@@ -79,28 +79,61 @@ async function modifierIntendance(
     throw new Error("Non autorisé.");
   }
 
-  const trajet = String(formData.get("trajet") ?? "").trim();
-  const couchage = String(formData.get("couchage") ?? "").trim();
-  const repas = String(formData.get("repas") ?? "").trim();
-  const reglement = String(formData.get("reglement") ?? "").trim();
+  const libelle = String(formData.get("libelle") ?? "").trim();
+  const optionsTexte = String(formData.get("optionsTexte") ?? "");
+  const options = optionsTexte
+    .split("\n")
+    .map((ligne) => ligne.trim())
+    .filter((ligne) => ligne.length > 0);
 
-  await prisma.evenement.update({
-    where: { id: evenementId },
+  if (!libelle || options.length === 0) {
+    redirect(
+      `/equipes/${equipeId}/evenements/${evenementId}?error=question_invalide`,
+    );
+  }
+
+  await prisma.questionIntendance.create({
     data: {
-      trajet: trajet || null,
-      couchage: couchage || null,
-      repas: repas || null,
-      reglement: reglement || null,
+      evenementId,
+      libelle,
+      options: {
+        create: options.map((optionLibelle, index) => ({
+          libelle: optionLibelle,
+          ordre: index,
+        })),
+      },
     },
   });
 
   revalidatePath(`/equipes/${equipeId}/evenements/${evenementId}`);
 }
 
-async function marquerInfosIntendance(
+async function retirerQuestionIntendance(
   equipeId: string,
   evenementId: string,
-  valeur: boolean,
+  formData: FormData,
+) {
+  "use server";
+
+  const session = await auth();
+  if (
+    !session?.user ||
+    !(await peutEditerIntendance(session.user, evenementId))
+  ) {
+    throw new Error("Non autorisé.");
+  }
+
+  const questionId = String(formData.get("questionId"));
+
+  await prisma.questionIntendance.delete({ where: { id: questionId } });
+
+  revalidatePath(`/equipes/${equipeId}/evenements/${evenementId}`);
+}
+
+async function repondreIntendance(
+  equipeId: string,
+  evenementId: string,
+  formData: FormData,
 ) {
   "use server";
 
@@ -108,16 +141,44 @@ async function marquerInfosIntendance(
   if (!session?.user) {
     throw new Error("Non autorisé.");
   }
+  const utilisateurId = session.user.id;
 
-  await prisma.participation.update({
-    where: {
-      utilisateurId_evenementId: {
-        utilisateurId: session.user.id,
-        evenementId,
-      },
-    },
-    data: { infosIntendanceOk: valeur },
+  const questions = await prisma.questionIntendance.findMany({
+    where: { evenementId },
+    select: { id: true },
   });
+
+  for (const question of questions) {
+    const valeur = formData.get(`q_${question.id}`);
+    if (!valeur) continue;
+
+    if (valeur === "autre") {
+      const reponseLibre = String(
+        formData.get(`q_${question.id}_autre`) ?? "",
+      ).trim();
+      if (!reponseLibre) continue;
+
+      await prisma.reponseIntendance.upsert({
+        where: {
+          questionId_utilisateurId: { questionId: question.id, utilisateurId },
+        },
+        update: { optionId: null, reponseLibre },
+        create: { questionId: question.id, utilisateurId, reponseLibre },
+      });
+    } else {
+      await prisma.reponseIntendance.upsert({
+        where: {
+          questionId_utilisateurId: { questionId: question.id, utilisateurId },
+        },
+        update: { optionId: String(valeur), reponseLibre: null },
+        create: {
+          questionId: question.id,
+          utilisateurId,
+          optionId: String(valeur),
+        },
+      });
+    }
+  }
 
   revalidatePath(`/equipes/${equipeId}/evenements/${evenementId}`);
 }
@@ -137,13 +198,32 @@ async function relancerRetardataires(equipeId: string, evenementId: string) {
     where: { id: evenementId },
   });
 
-  const retardataires = await prisma.participation.findMany({
-    where: {
-      evenementId,
-      OR: [{ statutPresence: "EN_ATTENTE" }, { infosIntendanceOk: false }],
-    },
-    include: { utilisateur: true },
-  });
+  const [participants, questions] = await Promise.all([
+    prisma.participation.findMany({
+      where: { evenementId },
+      include: { utilisateur: true },
+    }),
+    prisma.questionIntendance.findMany({
+      where: { evenementId },
+      include: { reponses: true },
+    }),
+  ]);
+
+  const nombreReponses = new Map<string, number>();
+  for (const question of questions) {
+    for (const reponse of question.reponses) {
+      nombreReponses.set(
+        reponse.utilisateurId,
+        (nombreReponses.get(reponse.utilisateurId) ?? 0) + 1,
+      );
+    }
+  }
+
+  const retardataires = participants.filter(
+    (p) =>
+      p.statutPresence === "EN_ATTENTE" ||
+      (nombreReponses.get(p.utilisateurId) ?? 0) < questions.length,
+  );
 
   const lienEvenement = `${process.env.APP_URL}/equipes/${equipeId}/evenements/${evenementId}`;
 
@@ -153,7 +233,7 @@ async function relancerRetardataires(equipeId: string, evenementId: string) {
       if (retardataire.statutPresence === "EN_ATTENTE") {
         actions.push("confirmer ta présence");
       }
-      if (!retardataire.infosIntendanceOk) {
+      if ((nombreReponses.get(retardataire.utilisateurId) ?? 0) < questions.length) {
         actions.push("compléter tes infos d'intendance");
       }
 
@@ -178,10 +258,14 @@ export default async function EvenementDetailPage({
   searchParams,
 }: {
   params: Promise<{ equipeId: string; evenementId: string }>;
-  searchParams: Promise<{ relance?: string; relanceEchecs?: string }>;
+  searchParams: Promise<{
+    relance?: string;
+    relanceEchecs?: string;
+    error?: string;
+  }>;
 }) {
   const { equipeId, evenementId } = await params;
-  const { relance, relanceEchecs } = await searchParams;
+  const { relance, relanceEchecs, error } = await searchParams;
   const session = await auth();
   const user = session!.user;
 
@@ -193,17 +277,26 @@ export default async function EvenementDetailPage({
     notFound();
   }
 
+  const concerneIntendanceEtCapitaine = evenement.type !== "ENTRAINEMENT";
+
   const participation = await prisma.participation.findUnique({
     where: { utilisateurId_evenementId: { utilisateurId: user.id, evenementId } },
   });
 
-  const [participants, assignations] = await Promise.all([
+  const [participants, assignations, questions] = await Promise.all([
     prisma.participation.findMany({
       where: { evenementId },
       include: { utilisateur: true },
       orderBy: { utilisateur: { nomPrenom: "asc" } },
     }),
     prisma.assignationEvenement.findMany({ where: { evenementId } }),
+    concerneIntendanceEtCapitaine
+      ? prisma.questionIntendance.findMany({
+          where: { evenementId },
+          include: { options: { orderBy: { ordre: "asc" } }, reponses: true },
+          orderBy: { createdAt: "asc" },
+        })
+      : Promise.resolve([]),
   ]);
 
   const rolesParUtilisateur = new Map<string, string[]>();
@@ -213,8 +306,22 @@ export default async function EvenementDetailPage({
     rolesParUtilisateur.set(assignation.utilisateurId, roles);
   }
 
+  const nombreReponsesParUtilisateur = new Map<string, number>();
+  for (const question of questions) {
+    for (const reponse of question.reponses) {
+      nombreReponsesParUtilisateur.set(
+        reponse.utilisateurId,
+        (nombreReponsesParUtilisateur.get(reponse.utilisateurId) ?? 0) + 1,
+      );
+    }
+  }
+  const intendanceComplete = (utilisateurId: string) =>
+    (nombreReponsesParUtilisateur.get(utilisateurId) ?? 0) >= questions.length;
+
   const retardataires = participants.filter(
-    (p) => p.statutPresence === "EN_ATTENTE" || !p.infosIntendanceOk,
+    (p) =>
+      p.statutPresence === "EN_ATTENTE" ||
+      (concerneIntendanceEtCapitaine && !intendanceComplete(p.utilisateurId)),
   );
 
   const [
@@ -244,7 +351,7 @@ export default async function EvenementDetailPage({
           <p className="mt-2 text-xs text-zinc-500">
             {editableInfos ? "Éditable par toi." : "Lecture seule."}
           </p>
-          {peutDesigner && (
+          {concerneIntendanceEtCapitaine && peutDesigner && (
             <Link
               href={`/equipes/${equipeId}/gestion/evenements/${evenementId}/roles`}
               className="mt-2 inline-block text-sm font-medium underline"
@@ -296,9 +403,15 @@ export default async function EvenementDetailPage({
                       <span className={couleurPresence}>
                         {libellePresence}
                       </span>
-                      {" · "}
-                      infos intendance{" "}
-                      {p.infosIntendanceOk ? "complétées" : "à compléter"}
+                      {concerneIntendanceEtCapitaine && questions.length > 0 && (
+                        <>
+                          {" · "}
+                          infos intendance{" "}
+                          {intendanceComplete(p.utilisateurId)
+                            ? "complétées"
+                            : "à compléter"}
+                        </>
+                      )}
                     </span>
                   </li>
                 );
@@ -364,170 +477,208 @@ export default async function EvenementDetailPage({
           )}
         </section>
 
-        <section className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
-          <h2 className="font-medium">Espace capitaine</h2>
+        {concerneIntendanceEtCapitaine && (
+          <section className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+            <h2 className="font-medium">Espace capitaine</h2>
 
-          {editableCapitaine ? (
-            <form
-              action={modifierNotesCapitaine.bind(null, equipeId, evenementId)}
-              className="mt-3 flex flex-col gap-3"
-            >
-              <div className="flex flex-col gap-1">
-                <label htmlFor="notesCapitaine" className="text-sm font-medium">
-                  Notes du capitaine
-                </label>
-                <textarea
-                  id="notesCapitaine"
-                  name="notesCapitaine"
-                  rows={4}
-                  placeholder="ex. composition, consignes tactiques, convocations…"
-                  defaultValue={evenement.notesCapitaine ?? ""}
-                  className="rounded border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
-                />
-              </div>
-              <button
-                type="submit"
-                className="self-start rounded bg-brand-violet px-4 py-2 text-sm font-medium text-white hover:bg-brand-violet-dark"
-              >
-                Enregistrer
-              </button>
-            </form>
-          ) : (
-            <p className="mt-1 whitespace-pre-wrap text-sm text-zinc-600 dark:text-zinc-400">
-              {evenement.notesCapitaine || "Aucune note pour l'instant."}
-            </p>
-          )}
-        </section>
-
-        <section className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
-          <h2 className="font-medium">Espace intendance</h2>
-
-          {editableIntendance ? (
-            <form
-              action={modifierIntendance.bind(null, equipeId, evenementId)}
-              className="mt-3 flex flex-col gap-3"
-            >
-              <div className="flex flex-col gap-1">
-                <label htmlFor="trajet" className="text-sm font-medium">
-                  Trajet
-                </label>
-                <textarea
-                  id="trajet"
-                  name="trajet"
-                  rows={2}
-                  defaultValue={evenement.trajet ?? ""}
-                  className="rounded border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
-                />
-              </div>
-              <div className="flex flex-col gap-1">
-                <label htmlFor="couchage" className="text-sm font-medium">
-                  Couchage
-                </label>
-                <textarea
-                  id="couchage"
-                  name="couchage"
-                  rows={2}
-                  defaultValue={evenement.couchage ?? ""}
-                  className="rounded border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
-                />
-              </div>
-              <div className="flex flex-col gap-1">
-                <label htmlFor="repas" className="text-sm font-medium">
-                  Repas
-                </label>
-                <textarea
-                  id="repas"
-                  name="repas"
-                  rows={2}
-                  defaultValue={evenement.repas ?? ""}
-                  className="rounded border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
-                />
-              </div>
-              <div className="flex flex-col gap-1">
-                <label htmlFor="reglement" className="text-sm font-medium">
-                  Règlement
-                </label>
-                <textarea
-                  id="reglement"
-                  name="reglement"
-                  rows={2}
-                  defaultValue={evenement.reglement ?? ""}
-                  className="rounded border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
-                />
-              </div>
-              <button
-                type="submit"
-                className="mt-1 self-start rounded bg-brand-violet px-4 py-2 text-sm font-medium text-white hover:bg-brand-violet-dark"
-              >
-                Enregistrer
-              </button>
-            </form>
-          ) : (
-            <dl className="mt-3 flex flex-col gap-2 text-sm">
-              <div>
-                <dt className="font-medium">Trajet</dt>
-                <dd className="text-zinc-600 dark:text-zinc-400">
-                  {evenement.trajet || "Non renseigné."}
-                </dd>
-              </div>
-              <div>
-                <dt className="font-medium">Couchage</dt>
-                <dd className="text-zinc-600 dark:text-zinc-400">
-                  {evenement.couchage || "Non renseigné."}
-                </dd>
-              </div>
-              <div>
-                <dt className="font-medium">Repas</dt>
-                <dd className="text-zinc-600 dark:text-zinc-400">
-                  {evenement.repas || "Non renseigné."}
-                </dd>
-              </div>
-              <div>
-                <dt className="font-medium">Règlement</dt>
-                <dd className="text-zinc-600 dark:text-zinc-400">
-                  {evenement.reglement || "Non renseigné."}
-                </dd>
-              </div>
-            </dl>
-          )}
-
-          {participation && (
-            <div className="mt-4 border-t border-zinc-200 pt-3 dark:border-zinc-800">
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                Mes infos :{" "}
-                <span className="font-medium">
-                  {participation.infosIntendanceOk
-                    ? "Complétées"
-                    : "À compléter"}
-                </span>
-              </p>
+            {editableCapitaine ? (
               <form
-                action={marquerInfosIntendance.bind(
-                  null,
-                  equipeId,
-                  evenementId,
-                  !participation.infosIntendanceOk,
-                )}
+                action={modifierNotesCapitaine.bind(null, equipeId, evenementId)}
+                className="mt-3 flex flex-col gap-3"
               >
+                <div className="flex flex-col gap-1">
+                  <label htmlFor="notesCapitaine" className="text-sm font-medium">
+                    Notes du capitaine
+                  </label>
+                  <textarea
+                    id="notesCapitaine"
+                    name="notesCapitaine"
+                    rows={4}
+                    placeholder="ex. composition, consignes tactiques, convocations…"
+                    defaultValue={evenement.notesCapitaine ?? ""}
+                    className="rounded border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
+                  />
+                </div>
                 <button
                   type="submit"
-                  className="mt-2 rounded border border-zinc-300 px-4 py-2 text-sm font-medium dark:border-zinc-700"
+                  className="self-start rounded bg-brand-violet px-4 py-2 text-sm font-medium text-white hover:bg-brand-violet-dark"
                 >
-                  {participation.infosIntendanceOk
-                    ? "Marquer comme à compléter"
-                    : "Marquer mes infos comme complétées"}
+                  Enregistrer
                 </button>
               </form>
-            </div>
-          )}
-        </section>
+            ) : (
+              <p className="mt-1 whitespace-pre-wrap text-sm text-zinc-600 dark:text-zinc-400">
+                {evenement.notesCapitaine || "Aucune note pour l'instant."}
+              </p>
+            )}
+          </section>
+        )}
+
+        {concerneIntendanceEtCapitaine && (
+          <section className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+            <h2 className="font-medium">Espace intendance</h2>
+
+            {editableIntendance && (
+              <div className="mt-3 border-b border-zinc-200 pb-4 dark:border-zinc-800">
+                <h3 className="text-sm font-medium">Ajouter une question</h3>
+                <form
+                  action={ajouterQuestionIntendance.bind(
+                    null,
+                    equipeId,
+                    evenementId,
+                  )}
+                  className="mt-2 flex flex-col gap-2"
+                >
+                  <input
+                    name="libelle"
+                    type="text"
+                    placeholder="ex. Quel est ton moyen de transport ?"
+                    required
+                    className="rounded border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+                  />
+                  <textarea
+                    name="optionsTexte"
+                    rows={3}
+                    placeholder={"Une option par ligne, ex. :\nVoiture\nTrain\nCovoiturage"}
+                    required
+                    className="rounded border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+                  />
+                  <p className="text-xs text-zinc-500">
+                    Une option &quot;Autre&quot; en texte libre est ajoutée
+                    automatiquement pour chaque joueur.
+                  </p>
+                  <button
+                    type="submit"
+                    className="self-start rounded bg-brand-violet px-4 py-2 text-sm font-medium text-white hover:bg-brand-violet-dark"
+                  >
+                    Ajouter la question
+                  </button>
+                </form>
+                {error === "question_invalide" && (
+                  <p className="mt-2 text-sm text-red-600">
+                    Merci de renseigner l&apos;intitulé et au moins une
+                    option.
+                  </p>
+                )}
+              </div>
+            )}
+
+            {questions.length === 0 ? (
+              <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">
+                Aucune question d&apos;intendance pour l&apos;instant.
+              </p>
+            ) : (
+              <>
+                {editableIntendance && (
+                  <ul className="mt-4 flex flex-col gap-2">
+                    {questions.map((question) => (
+                      <li
+                        key={question.id}
+                        className="flex items-center justify-between gap-2 text-sm"
+                      >
+                        <span>
+                          {question.libelle}{" "}
+                          <span className="text-zinc-500">
+                            ({question.options.map((o) => o.libelle).join(", ")})
+                          </span>
+                        </span>
+                        <form
+                          action={retirerQuestionIntendance.bind(
+                            null,
+                            equipeId,
+                            evenementId,
+                          )}
+                        >
+                          <input
+                            type="hidden"
+                            name="questionId"
+                            value={question.id}
+                          />
+                          <button
+                            type="submit"
+                            className="rounded border border-zinc-300 px-2 py-1 text-xs font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-900"
+                          >
+                            Retirer
+                          </button>
+                        </form>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {participation && (
+                  <form
+                    action={repondreIntendance.bind(null, equipeId, evenementId)}
+                    className="mt-4 flex flex-col gap-4 border-t border-zinc-200 pt-4 dark:border-zinc-800"
+                  >
+                    <h3 className="text-sm font-medium">Mes réponses</h3>
+                    {questions.map((question) => {
+                      const maReponse = question.reponses.find(
+                        (r) => r.utilisateurId === user.id,
+                      );
+                      return (
+                        <div key={question.id} className="flex flex-col gap-1">
+                          <p className="text-sm">{question.libelle}</p>
+                          {question.options.map((option) => (
+                            <div
+                              key={option.id}
+                              className="flex items-center gap-2 text-sm"
+                            >
+                              <input
+                                type="radio"
+                                id={`q${question.id}-o${option.id}`}
+                                name={`q_${question.id}`}
+                                value={option.id}
+                                defaultChecked={maReponse?.optionId === option.id}
+                              />
+                              <label htmlFor={`q${question.id}-o${option.id}`}>
+                                {option.libelle}
+                              </label>
+                            </div>
+                          ))}
+                          <div className="flex items-center gap-2 text-sm">
+                            <input
+                              type="radio"
+                              className="peer"
+                              id={`q${question.id}-autre`}
+                              name={`q_${question.id}`}
+                              value="autre"
+                              defaultChecked={Boolean(maReponse?.reponseLibre)}
+                            />
+                            <label htmlFor={`q${question.id}-autre`}>
+                              Autre :
+                            </label>
+                          </div>
+                          <input
+                            type="text"
+                            name={`q_${question.id}_autre`}
+                            defaultValue={maReponse?.reponseLibre ?? ""}
+                            placeholder="Précise…"
+                            className="hidden rounded border border-zinc-300 px-3 py-1.5 text-sm peer-checked:block dark:border-zinc-700 dark:bg-zinc-900"
+                          />
+                        </div>
+                      );
+                    })}
+                    <button
+                      type="submit"
+                      className="self-start rounded bg-brand-violet px-4 py-2 text-sm font-medium text-white hover:bg-brand-violet-dark"
+                    >
+                      Enregistrer mes réponses
+                    </button>
+                  </form>
+                )}
+              </>
+            )}
+          </section>
+        )}
 
         <section className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
           <h2 className="font-medium">Relance</h2>
           <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
             Le coach, l&apos;intendant ou l&apos;admin peut relancer les
-            participants n&apos;ayant pas confirmé leur présence ou pas
-            complété leurs infos d&apos;intendance.
+            participants n&apos;ayant pas confirmé leur présence
+            {concerneIntendanceEtCapitaine && " ou pas complété leurs infos d'intendance"}
+            .
           </p>
 
           {relance !== undefined && (
@@ -552,7 +703,10 @@ export default async function EvenementDetailPage({
                     if (retardataire.statutPresence === "EN_ATTENTE") {
                       raisons.push("présence non confirmée");
                     }
-                    if (!retardataire.infosIntendanceOk) {
+                    if (
+                      concerneIntendanceEtCapitaine &&
+                      !intendanceComplete(retardataire.utilisateurId)
+                    ) {
                       raisons.push("infos intendance non complétées");
                     }
                     return (
