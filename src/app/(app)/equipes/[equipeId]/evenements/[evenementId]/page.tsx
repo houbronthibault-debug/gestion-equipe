@@ -625,6 +625,60 @@ export default async function EvenementDetailPage({
                   </ul>
                 )}
 
+                {editableIntendance && (
+                  <div className="mt-4 overflow-x-auto">
+                    <h3 className="mb-2 text-sm font-medium">
+                      Réponses des joueurs
+                    </h3>
+                    <table className="w-full min-w-max border-collapse text-sm">
+                      <thead>
+                        <tr>
+                          <th className="border-b border-zinc-200 py-2 pr-4 text-left font-medium dark:border-zinc-800">
+                            Joueur
+                          </th>
+                          {questions.map((question) => (
+                            <th
+                              key={question.id}
+                              className="border-b border-zinc-200 py-2 pr-4 text-left font-medium dark:border-zinc-800"
+                            >
+                              {question.libelle}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {participants.map((p) => (
+                          <tr key={p.id}>
+                            <td className="border-b border-zinc-200 py-2 pr-4 dark:border-zinc-800">
+                              {p.utilisateur.nomPrenom}
+                            </td>
+                            {questions.map((question) => {
+                              const reponse = question.reponses.find(
+                                (r) => r.utilisateurId === p.utilisateurId,
+                              );
+                              const option = reponse?.optionId
+                                ? question.options.find(
+                                    (o) => o.id === reponse.optionId,
+                                  )
+                                : undefined;
+                              const texte =
+                                option?.libelle ?? reponse?.reponseLibre;
+                              return (
+                                <td
+                                  key={question.id}
+                                  className="border-b border-zinc-200 py-2 pr-4 text-zinc-600 dark:border-zinc-800 dark:text-zinc-400"
+                                >
+                                  {texte ?? "—"}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
                 {participation && (
                   <form
                     action={repondreIntendance.bind(null, equipeId, evenementId)}
@@ -676,7 +730,7 @@ export default async function EvenementDetailPage({
                               </label>
                             </div>
                           ))}
-                          <div className="flex items-center gap-2 text-sm">
+                          <div className="flex flex-wrap items-center gap-2 text-sm">
                             <input
                               type="radio"
                               className="peer"
@@ -688,14 +742,14 @@ export default async function EvenementDetailPage({
                             <label htmlFor={`q${question.id}-autre`}>
                               Autre :
                             </label>
+                            <input
+                              type="text"
+                              name={`q_${question.id}_autre`}
+                              defaultValue={maReponse?.reponseLibre ?? ""}
+                              placeholder="Précise…"
+                              className="hidden basis-full rounded border border-zinc-300 px-3 py-1.5 text-sm peer-checked:block dark:border-zinc-700 dark:bg-zinc-900"
+                            />
                           </div>
-                          <input
-                            type="text"
-                            name={`q_${question.id}_autre`}
-                            defaultValue={maReponse?.reponseLibre ?? ""}
-                            placeholder="Précise…"
-                            className="hidden rounded border border-zinc-300 px-3 py-1.5 text-sm peer-checked:block dark:border-zinc-700 dark:bg-zinc-900"
-                          />
                         </div>
                       );
                     })}
