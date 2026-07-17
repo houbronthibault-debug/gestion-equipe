@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { PageHeader } from "@/components/PageHeader";
+import { PasswordInput } from "@/components/PasswordInput";
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/password";
 
@@ -120,10 +121,9 @@ export default async function InscriptionPage({
           <label htmlFor="motDePasse" className="text-sm font-medium">
             Mot de passe
           </label>
-          <input
+          <PasswordInput
             id="motDePasse"
             name="motDePasse"
-            type="password"
             required
             minLength={8}
             className="rounded border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"

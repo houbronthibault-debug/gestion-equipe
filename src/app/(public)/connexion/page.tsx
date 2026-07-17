@@ -2,6 +2,7 @@ import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
 
 import { PageHeader } from "@/components/PageHeader";
+import { PasswordInput } from "@/components/PasswordInput";
 import { signIn } from "@/auth";
 
 async function connecter(formData: FormData) {
@@ -63,10 +64,9 @@ export default async function ConnexionPage({
           <label htmlFor="motDePasse" className="text-sm font-medium">
             Mot de passe
           </label>
-          <input
+          <PasswordInput
             id="motDePasse"
             name="motDePasse"
-            type="password"
             required
             className="rounded border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
           />
