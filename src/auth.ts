@@ -23,9 +23,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null;
         }
 
+        const identifiantNormalise = identifiant.trim();
+
         const utilisateur = await prisma.utilisateur.findFirst({
           where: {
-            OR: [{ mail: identifiant }, { pseudo: identifiant }],
+            OR: [
+              { mail: { equals: identifiantNormalise, mode: "insensitive" } },
+              { pseudo: { equals: identifiantNormalise, mode: "insensitive" } },
+            ],
           },
         });
 

@@ -14,8 +14,8 @@ async function demanderReinitialisation(formData: FormData) {
   const mail = String(formData.get("mail") ?? "").trim();
 
   if (mail) {
-    const utilisateur = await prisma.utilisateur.findUnique({
-      where: { mail },
+    const utilisateur = await prisma.utilisateur.findFirst({
+      where: { mail: { equals: mail, mode: "insensitive" } },
     });
 
     if (utilisateur) {

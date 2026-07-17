@@ -10,7 +10,7 @@ async function demanderInscription(formData: FormData) {
 
   const nomPrenom = String(formData.get("nomPrenom") ?? "").trim();
   const pseudo = String(formData.get("pseudo") ?? "").trim();
-  const mail = String(formData.get("mail") ?? "").trim();
+  const mail = String(formData.get("mail") ?? "").trim().toLowerCase();
   const telephone = String(formData.get("telephone") ?? "").trim();
   const motDePasse = String(formData.get("motDePasse") ?? "");
 
