@@ -1,7 +1,10 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { PageHeader } from "@/components/PageHeader";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { peutConsulterEspaceEquipe } from "@/lib/permissions";
 
 const LIBELLES_TYPE: Record<string, string> = {
   ENTRAINEMENT: "Entraînement",
@@ -17,6 +20,11 @@ export default async function EquipeVueEnsemblePage({
   params: Promise<{ equipeId: string }>;
 }) {
   const { equipeId } = await params;
+  const session = await auth();
+
+  if (!(await peutConsulterEspaceEquipe(session!.user, equipeId))) {
+    redirect("/mes-equipes");
+  }
 
   const [evenements, appartenances] = await Promise.all([
     prisma.evenement.findMany({

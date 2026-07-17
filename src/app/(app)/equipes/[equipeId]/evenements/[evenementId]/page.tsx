@@ -7,6 +7,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { envoyerEmail } from "@/lib/email";
 import {
+  peutConsulterEvenement,
   peutDeclencherRelance,
   peutDesignerRoles,
   peutEditerEspaceCapitaine,
@@ -270,6 +271,48 @@ async function relancerRetardataires(equipeId: string, evenementId: string) {
   );
 }
 
+async function supprimerEvenement(equipeId: string, evenementId: string) {
+  "use server";
+
+  const session = await auth();
+  if (
+    !session?.user ||
+    !(await peutModifierEvenement(session.user, equipeId))
+  ) {
+    throw new Error("Non autorisé.");
+  }
+
+  await prisma.evenement.delete({ where: { id: evenementId } });
+
+  redirect(`/equipes/${equipeId}`);
+}
+
+async function ajouterParticipant(
+  equipeId: string,
+  evenementId: string,
+  formData: FormData,
+) {
+  "use server";
+
+  const session = await auth();
+  if (
+    !session?.user ||
+    !(await peutModifierEvenement(session.user, equipeId))
+  ) {
+    throw new Error("Non autorisé.");
+  }
+
+  const utilisateurId = String(formData.get("utilisateurId"));
+
+  await prisma.participation.upsert({
+    where: { utilisateurId_evenementId: { utilisateurId, evenementId } },
+    update: {},
+    create: { utilisateurId, evenementId },
+  });
+
+  revalidatePath(`/equipes/${equipeId}/evenements/${evenementId}`);
+}
+
 export default async function EvenementDetailPage({
   params,
   searchParams,
@@ -280,11 +323,17 @@ export default async function EvenementDetailPage({
     relanceEchecs?: string;
     error?: string;
     confirmerSuppression?: string;
+    confirmerSuppressionEvenement?: string;
   }>;
 }) {
   const { equipeId, evenementId } = await params;
-  const { relance, relanceEchecs, error, confirmerSuppression } =
-    await searchParams;
+  const {
+    relance,
+    relanceEchecs,
+    error,
+    confirmerSuppression,
+    confirmerSuppressionEvenement,
+  } = await searchParams;
   const session = await auth();
   const user = session!.user;
 
@@ -294,6 +343,10 @@ export default async function EvenementDetailPage({
 
   if (!evenement || evenement.equipeId !== equipeId) {
     notFound();
+  }
+
+  if (!(await peutConsulterEvenement(user, equipeId, evenementId))) {
+    redirect("/mes-equipes");
   }
 
   const concerneIntendanceEtCapitaine = evenement.type !== "ENTRAINEMENT";
@@ -357,6 +410,16 @@ export default async function EvenementDetailPage({
     peutDesignerRoles(user, equipeId),
   ]);
 
+  const idsParticipants = new Set(participants.map((p) => p.utilisateurId));
+  const utilisateursEligibles = editableInfos
+    ? (
+        await prisma.utilisateur.findMany({
+          where: { statutInscription: "VALIDE" },
+          orderBy: { nomPrenom: "asc" },
+        })
+      ).filter((u) => !idsParticipants.has(u.id))
+    : [];
+
   return (
     <>
       <PageHeader title="Détail de l'événement" description={evenement.lieu} />
@@ -377,6 +440,47 @@ export default async function EvenementDetailPage({
             >
               Désigner capitaine / intendant
             </Link>
+          )}
+
+          {editableInfos && (
+            <div className="mt-4 border-t border-zinc-200 pt-3 dark:border-zinc-800">
+              {confirmerSuppressionEvenement ? (
+                <div className="flex flex-col gap-2 rounded border border-red-300 bg-red-50 px-3 py-2 dark:border-red-900 dark:bg-red-950">
+                  <p className="text-xs text-red-700 dark:text-red-400">
+                    {`Supprimer définitivement cet événement ? ${participants.length} participant(s) et toutes les réponses associées seront perdus. Cette action est irréversible.`}
+                  </p>
+                  <div className="flex gap-2">
+                    <form
+                      action={supprimerEvenement.bind(
+                        null,
+                        equipeId,
+                        evenementId,
+                      )}
+                    >
+                      <button
+                        type="submit"
+                        className="rounded bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700"
+                      >
+                        Confirmer la suppression
+                      </button>
+                    </form>
+                    <Link
+                      href={`/equipes/${equipeId}/evenements/${evenementId}`}
+                      className="rounded border border-zinc-300 px-3 py-1.5 text-xs font-medium dark:border-zinc-700"
+                    >
+                      Annuler
+                    </Link>
+                  </div>
+                </div>
+              ) : (
+                <Link
+                  href={`/equipes/${equipeId}/evenements/${evenementId}?confirmerSuppressionEvenement=1`}
+                  className="text-sm font-medium text-red-600 hover:underline"
+                >
+                  Supprimer l&apos;événement
+                </Link>
+              )}
+            </div>
           )}
         </section>
 
@@ -436,6 +540,49 @@ export default async function EvenementDetailPage({
                 );
               })}
             </ul>
+          )}
+
+          {editableInfos && (
+            <div className="mt-4 border-t border-zinc-200 pt-3 dark:border-zinc-800">
+              {utilisateursEligibles.length === 0 ? (
+                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                  Tous les comptes validés participent déjà.
+                </p>
+              ) : (
+                <form
+                  action={ajouterParticipant.bind(null, equipeId, evenementId)}
+                  className="flex flex-wrap items-end gap-3"
+                >
+                  <div className="flex flex-col gap-1">
+                    <label
+                      htmlFor="utilisateurId"
+                      className="text-sm font-medium"
+                    >
+                      Ajouter un participant (n&apos;importe quel membre du
+                      club, pas seulement l&apos;équipe)
+                    </label>
+                    <select
+                      id="utilisateurId"
+                      name="utilisateurId"
+                      required
+                      className="rounded border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+                    >
+                      {utilisateursEligibles.map((utilisateur) => (
+                        <option key={utilisateur.id} value={utilisateur.id}>
+                          {utilisateur.nomPrenom} ({utilisateur.pseudo})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <button
+                    type="submit"
+                    className="rounded bg-brand-violet px-4 py-2 text-sm font-medium text-white hover:bg-brand-violet-dark"
+                  >
+                    Ajouter
+                  </button>
+                </form>
+              )}
+            </div>
           )}
         </section>
 

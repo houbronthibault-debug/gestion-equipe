@@ -57,6 +57,20 @@ export function peutConsulterEspaceEquipe(user: Utilisateur, equipeId: string) {
   return estMembreEquipe(user, equipeId);
 }
 
+// Membre de l'équipe, admin, ou invité directement ajouté comme
+// participant à cet événement précis (sans être membre de l'équipe).
+export async function peutConsulterEvenement(
+  user: Utilisateur,
+  equipeId: string,
+  evenementId: string,
+) {
+  if (await peutConsulterEspaceEquipe(user, equipeId)) return true;
+  const participation = await prisma.participation.findUnique({
+    where: { utilisateurId_evenementId: { utilisateurId: user.id, evenementId } },
+  });
+  return participation !== null;
+}
+
 export function peutGererMembresEquipe(user: Utilisateur, equipeId: string) {
   return estCoachEquipe(user, equipeId);
 }

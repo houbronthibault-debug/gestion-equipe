@@ -16,21 +16,10 @@ export default async function TableauDeBordPage() {
   const session = await auth();
   const user = session!.user;
 
-  const equipeIds = user.estAdmin
-    ? (await prisma.equipe.findMany({ select: { id: true } })).map(
-        (e) => e.id,
-      )
-    : (
-        await prisma.appartenance.findMany({
-          where: { utilisateurId: user.id },
-          select: { equipeId: true },
-        })
-      ).map((a) => a.equipeId);
-
   const evenements = await prisma.evenement.findMany({
     where: {
-      equipeId: { in: equipeIds },
       dateDebut: { gte: new Date() },
+      participations: { some: { utilisateurId: user.id } },
     },
     include: { equipe: true },
     orderBy: { dateDebut: "asc" },

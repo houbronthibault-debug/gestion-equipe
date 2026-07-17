@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
 import { peutConsulterEspaceEquipe, peutGererMembresEquipe } from "@/lib/permissions";
@@ -15,29 +14,34 @@ export default async function EquipeLayout({
   const session = await auth();
   const user = session!.user;
 
-  if (!(await peutConsulterEspaceEquipe(user, equipeId))) {
-    redirect("/mes-equipes");
-  }
+  // Pas de garde bloquante ici : un invité ajouté à un seul événement (sans
+  // être membre de l'équipe) doit pouvoir accéder à cette page précise.
+  // Chaque page (vue d'ensemble, documents, événement) vérifie elle-même le
+  // droit d'accès qui lui correspond.
+  const estMembre = await peutConsulterEspaceEquipe(user, equipeId);
+  const peutGerer = estMembre && (await peutGererMembresEquipe(user, equipeId));
 
-  const peutGerer = await peutGererMembresEquipe(user, equipeId);
-
-  const NAV_ITEMS = [
-    { href: `/equipes/${equipeId}`, label: "Vue d'ensemble" },
-    { href: `/equipes/${equipeId}/documents`, label: "Documents" },
-    ...(peutGerer
-      ? [{ href: `/equipes/${equipeId}/gestion`, label: "Gestion équipe" }]
-      : []),
-  ];
+  const NAV_ITEMS = estMembre
+    ? [
+        { href: `/equipes/${equipeId}`, label: "Vue d'ensemble" },
+        { href: `/equipes/${equipeId}/documents`, label: "Documents" },
+        ...(peutGerer
+          ? [{ href: `/equipes/${equipeId}/gestion`, label: "Gestion équipe" }]
+          : []),
+      ]
+    : [];
 
   return (
     <div>
-      <nav className="mb-6 flex gap-4 border-b border-zinc-200 pb-3 text-sm dark:border-zinc-800">
-        {NAV_ITEMS.map((item) => (
-          <Link key={item.href} href={item.href} className="hover:underline">
-            {item.label}
-          </Link>
-        ))}
-      </nav>
+      {NAV_ITEMS.length > 0 && (
+        <nav className="mb-6 flex gap-4 border-b border-zinc-200 pb-3 text-sm dark:border-zinc-800">
+          {NAV_ITEMS.map((item) => (
+            <Link key={item.href} href={item.href} className="hover:underline">
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+      )}
       {children}
     </div>
   );

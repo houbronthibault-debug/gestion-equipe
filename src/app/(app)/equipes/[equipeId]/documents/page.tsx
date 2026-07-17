@@ -1,6 +1,10 @@
+import { redirect } from "next/navigation";
+
 import { PageHeader } from "@/components/PageHeader";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { resoudreUrlDocument } from "@/lib/supabase";
+import { peutConsulterEspaceEquipe } from "@/lib/permissions";
 
 export default async function EquipeDocumentsPage({
   params,
@@ -8,6 +12,11 @@ export default async function EquipeDocumentsPage({
   params: Promise<{ equipeId: string }>;
 }) {
   const { equipeId } = await params;
+  const session = await auth();
+
+  if (!(await peutConsulterEspaceEquipe(session!.user, equipeId))) {
+    redirect("/mes-equipes");
+  }
 
   const documents = await prisma.document.findMany({
     where: { equipeId },
