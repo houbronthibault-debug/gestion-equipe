@@ -643,7 +643,8 @@ export default async function EvenementDetailPage({
           )}
         </section>
 
-        {concerneIntendanceEtCapitaine && (
+        {concerneIntendanceEtCapitaine &&
+          (editableCapitaine || evenement.notesCapitaine) && (
           <section className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
             <h2 className="font-medium">Espace capitaine</h2>
 
@@ -680,7 +681,8 @@ export default async function EvenementDetailPage({
           </section>
         )}
 
-        {concerneIntendanceEtCapitaine && (
+        {concerneIntendanceEtCapitaine &&
+          (editableIntendance || questions.length > 0) && (
           <section
             id="intendance"
             className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800"
@@ -968,66 +970,63 @@ export default async function EvenementDetailPage({
           </section>
         )}
 
-        <section className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
-          <h2 className="font-medium">Relance</h2>
-          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-            Le coach, l&apos;intendant ou l&apos;admin peut relancer les
-            participants n&apos;ayant pas confirmé leur présence
-            {concerneIntendanceEtCapitaine && " ou pas complété leurs infos d'intendance"}
-            .
-          </p>
-
-          {relance !== undefined && (
-            <p className="mt-3 rounded border border-zinc-300 bg-zinc-100 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900">
-              {`Email de relance envoyé à ${relance} participant(s).`}
-              {relanceEchecs && relanceEchecs !== "0"
-                ? ` ${relanceEchecs} échec(s) d'envoi (voir la console serveur).`
-                : ""}
+        {peutRelancer && (
+          <section className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+            <h2 className="font-medium">Relance</h2>
+            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+              Relance les participants n&apos;ayant pas confirmé leur présence
+              {concerneIntendanceEtCapitaine && " ou pas complété leurs infos d'intendance"}
+              .
             </p>
-          )}
 
-          {peutRelancer && (
-            <>
-              {retardataires.length === 0 ? (
-                <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">
-                  Aucun retardataire pour l&apos;instant.
-                </p>
-              ) : (
-                <ul className="mt-3 flex flex-col gap-1 text-sm text-zinc-600 dark:text-zinc-400">
-                  {retardataires.map((retardataire) => {
-                    const raisons: string[] = [];
-                    if (retardataire.statutPresence === "EN_ATTENTE") {
-                      raisons.push("présence non confirmée");
-                    }
-                    if (
-                      concerneIntendanceEtCapitaine &&
-                      !intendanceComplete(retardataire.utilisateurId)
-                    ) {
-                      raisons.push("infos intendance non complétées");
-                    }
-                    return (
-                      <li key={retardataire.id}>
-                        {retardataire.utilisateur.nomPrenom} —{" "}
-                        {raisons.join(", ")}
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-              <form
-                action={relancerRetardataires.bind(null, equipeId, evenementId)}
+            {relance !== undefined && (
+              <p className="mt-3 rounded border border-zinc-300 bg-zinc-100 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900">
+                {`Email de relance envoyé à ${relance} participant(s).`}
+                {relanceEchecs && relanceEchecs !== "0"
+                  ? ` ${relanceEchecs} échec(s) d'envoi (voir la console serveur).`
+                  : ""}
+              </p>
+            )}
+
+            {retardataires.length === 0 ? (
+              <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">
+                Aucun retardataire pour l&apos;instant.
+              </p>
+            ) : (
+              <ul className="mt-3 flex flex-col gap-1 text-sm text-zinc-600 dark:text-zinc-400">
+                {retardataires.map((retardataire) => {
+                  const raisons: string[] = [];
+                  if (retardataire.statutPresence === "EN_ATTENTE") {
+                    raisons.push("présence non confirmée");
+                  }
+                  if (
+                    concerneIntendanceEtCapitaine &&
+                    !intendanceComplete(retardataire.utilisateurId)
+                  ) {
+                    raisons.push("infos intendance non complétées");
+                  }
+                  return (
+                    <li key={retardataire.id}>
+                      {retardataire.utilisateur.nomPrenom} —{" "}
+                      {raisons.join(", ")}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+            <form
+              action={relancerRetardataires.bind(null, equipeId, evenementId)}
+            >
+              <button
+                type="submit"
+                disabled={retardataires.length === 0}
+                className="mt-3 rounded bg-brand-violet px-4 py-2 text-sm font-medium text-white hover:bg-brand-violet-dark disabled:opacity-50"
               >
-                <button
-                  type="submit"
-                  disabled={retardataires.length === 0}
-                  className="mt-3 rounded bg-brand-violet px-4 py-2 text-sm font-medium text-white hover:bg-brand-violet-dark disabled:opacity-50"
-                >
-                  Relancer les retardataires
-                </button>
-              </form>
-            </>
-          )}
-        </section>
+                Relancer les retardataires
+              </button>
+            </form>
+          </section>
+        )}
       </div>
     </>
   );
