@@ -29,13 +29,22 @@ async function connecter(formData: FormData) {
 export default async function ConnexionPage({
   searchParams,
 }: {
-  searchParams: Promise<{ callbackUrl?: string; error?: string }>;
+  searchParams: Promise<{
+    callbackUrl?: string;
+    error?: string;
+    motDePasseReinitialise?: string;
+  }>;
 }) {
   const params = await searchParams;
 
   return (
     <>
       <PageHeader title="Connexion" description="Accède à ton espace club." />
+      {params.motDePasseReinitialise && (
+        <p className="mb-4 rounded border border-green-300 bg-green-50 px-3 py-2 text-sm text-green-700 dark:border-green-900 dark:bg-green-950 dark:text-green-400">
+          Ton mot de passe a été réinitialisé. Tu peux te connecter.
+        </p>
+      )}
       <form action={connecter} className="flex flex-col gap-4">
         <input type="hidden" name="callbackUrl" value={params.callbackUrl ?? ""} />
         <div className="flex flex-col gap-1">
@@ -74,6 +83,11 @@ export default async function ConnexionPage({
           Se connecter
         </button>
       </form>
+      <p className="mt-3 text-center text-sm">
+        <a href="/mot-de-passe-oublie" className="font-medium underline">
+          Mot de passe oublié ?
+        </a>
+      </p>
       <p className="mt-4 text-center text-sm text-zinc-600 dark:text-zinc-400">
         Pas encore de compte ?{" "}
         <a href="/inscription" className="font-medium underline">

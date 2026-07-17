@@ -57,13 +57,26 @@ model Utilisateur {
   statutInscription StatutInscription @default(EN_ATTENTE)
   createdAt         DateTime          @default(now())
 
-  appartenances         Appartenance[]
-  assignationsEvenement AssignationEvenement[]
-  participations        Participation[]
-  documentsDeposes      Document[]
-  reponsesIntendance    ReponseIntendance[]
+  appartenances          Appartenance[]
+  assignationsEvenement  AssignationEvenement[]
+  participations         Participation[]
+  documentsDeposes       Document[]
+  reponsesIntendance     ReponseIntendance[]
+  tokensReinitialisation TokenReinitialisation[]
 
   @@map("utilisateurs")
+}
+
+model TokenReinitialisation {
+  id            String   @id @default(cuid())
+  utilisateurId String
+  token         String   @unique
+  expiration    DateTime
+  createdAt     DateTime @default(now())
+
+  utilisateur Utilisateur @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+
+  @@map("tokens_reinitialisation")
 }
 
 model Equipe {

@@ -2,7 +2,12 @@ import { NextResponse } from "next/server";
 
 import { auth } from "@/auth";
 
-const PUBLIC_ROUTES = ["/connexion", "/inscription"];
+const PUBLIC_ROUTES = [
+  "/connexion",
+  "/inscription",
+  "/mot-de-passe-oublie",
+  "/reinitialiser-mot-de-passe",
+];
 
 export default auth((req) => {
   const isPublicRoute = PUBLIC_ROUTES.some((route) =>
