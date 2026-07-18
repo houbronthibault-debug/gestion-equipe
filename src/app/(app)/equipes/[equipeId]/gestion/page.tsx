@@ -16,7 +16,7 @@ export default async function GestionEquipePage({
         description="Réservé aux coachs de l'équipe et aux administrateurs."
       />
       <div className="flex flex-col gap-4">
-        <section className="rounded-lg border border-zinc-200 bg-card-background p-4 dark:border-zinc-700">
+        <section className="rounded-lg border border-zinc-200 bg-card-background-tableau-bord p-4 dark:border-zinc-700">
           <h2 className="font-medium">Membres</h2>
           <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
             Ajout et retrait de joueurs de l&apos;équipe.
@@ -28,7 +28,7 @@ export default async function GestionEquipePage({
             Gérer les membres
           </Link>
         </section>
-        <section className="rounded-lg border border-zinc-200 bg-card-background p-4 dark:border-zinc-700">
+        <section className="rounded-lg border border-zinc-200 bg-card-background-tableau-bord p-4 dark:border-zinc-700">
           <h2 className="font-medium">Événements</h2>
           <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
             Créer un événement ou désigner capitaine/intendant sur un
@@ -41,7 +41,7 @@ export default async function GestionEquipePage({
             Créer un événement
           </Link>
         </section>
-        <section className="rounded-lg border border-zinc-200 bg-card-background p-4 dark:border-zinc-700">
+        <section className="rounded-lg border border-zinc-200 bg-card-background-tableau-bord p-4 dark:border-zinc-700">
           <h2 className="font-medium">Documents</h2>
           <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
             Déposer un document d&apos;équipe ou visible club.

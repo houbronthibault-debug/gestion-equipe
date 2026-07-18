@@ -65,7 +65,7 @@ export default async function GestionRolesPage({
         {utilisateurs.map((utilisateur) => (
           <li
             key={utilisateur.id}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-card-background p-4 dark:border-zinc-700"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-card-background-tableau-bord p-4 dark:border-zinc-700"
           >
             <div>
               <p className="font-medium">

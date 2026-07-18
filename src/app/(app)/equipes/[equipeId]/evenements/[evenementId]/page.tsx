@@ -424,7 +424,7 @@ export default async function EvenementDetailPage({
     <>
       <PageHeader title="Détail de l'événement" description={evenement.lieu} />
       <div className="flex flex-col gap-6">
-        <section className="rounded-lg border border-zinc-200 bg-card-background p-4 dark:border-zinc-700">
+        <section className="rounded-lg border border-zinc-200 bg-card-background-tableau-bord p-4 dark:border-zinc-700">
           <h2 className="font-medium">Infos générales</h2>
           <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
             {evenement.type} — {evenement.lieu}
@@ -484,7 +484,7 @@ export default async function EvenementDetailPage({
           )}
         </section>
 
-        <section className="rounded-lg border border-zinc-200 bg-card-background p-4 dark:border-zinc-700">
+        <section className="rounded-lg border border-zinc-200 bg-card-background-formulaires p-4 dark:border-zinc-700">
           <h2 className="font-medium">Participants</h2>
           {participants.length === 0 ? (
             <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
@@ -586,7 +586,7 @@ export default async function EvenementDetailPage({
           )}
         </section>
 
-        <section className="rounded-lg border border-zinc-200 bg-card-background p-4 dark:border-zinc-700">
+        <section className="rounded-lg border border-zinc-200 bg-card-background-tableau-bord p-4 dark:border-zinc-700">
           <h2 className="font-medium">Confirmation de présence</h2>
           {participation ? (
             <>
@@ -645,7 +645,7 @@ export default async function EvenementDetailPage({
 
         {concerneIntendanceEtCapitaine &&
           (editableCapitaine || evenement.notesCapitaine) && (
-          <section className="rounded-lg border border-zinc-200 bg-card-background p-4 dark:border-zinc-700">
+          <section className="rounded-lg border border-zinc-200 bg-card-background-formulaires p-4 dark:border-zinc-700">
             <h2 className="font-medium">Espace capitaine</h2>
 
             {editableCapitaine ? (
@@ -685,7 +685,7 @@ export default async function EvenementDetailPage({
           (editableIntendance || questions.length > 0) && (
           <section
             id="intendance"
-            className="rounded-lg border border-zinc-200 bg-card-background p-4 dark:border-zinc-700"
+            className="rounded-lg border border-zinc-200 bg-card-background-formulaires p-4 dark:border-zinc-700"
           >
             <h2 className="font-medium">Espace intendance</h2>
 
@@ -971,7 +971,7 @@ export default async function EvenementDetailPage({
         )}
 
         {peutRelancer && (
-          <section className="rounded-lg border border-zinc-200 bg-card-background p-4 dark:border-zinc-700">
+          <section className="rounded-lg border border-zinc-200 bg-card-background-tableau-bord p-4 dark:border-zinc-700">
             <h2 className="font-medium">Relance</h2>
             <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
               Relance les participants n&apos;ayant pas confirmé leur présence

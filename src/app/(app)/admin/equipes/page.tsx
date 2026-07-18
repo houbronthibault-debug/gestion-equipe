@@ -71,7 +71,7 @@ export default async function GestionEquipesPage({
         description="Créer ou renommer une équipe. La suppression n'est pas proposée ici : elle effacerait en cascade les membres, événements et documents de l'équipe."
       />
 
-      <section className="mb-8 rounded-lg border border-zinc-200 bg-card-background p-4 dark:border-zinc-700">
+      <section className="mb-8 rounded-lg border border-zinc-200 bg-card-background-formulaires p-4 dark:border-zinc-700">
         <h2 className="font-medium">Créer une équipe</h2>
         <form action={creerEquipe} className="mt-3 flex flex-wrap items-end gap-3">
           <div className="flex flex-col gap-1">
@@ -114,7 +114,7 @@ export default async function GestionEquipesPage({
             {equipes.map((equipe) => (
               <li
                 key={equipe.id}
-                className="rounded-lg border border-zinc-200 bg-card-background p-4 dark:border-zinc-700"
+                className="rounded-lg border border-zinc-200 bg-card-background-formulaires p-4 dark:border-zinc-700"
               >
                 <p className="text-sm text-zinc-600 dark:text-zinc-400">
                   {equipe._count.appartenances} membre(s) ·{" "}

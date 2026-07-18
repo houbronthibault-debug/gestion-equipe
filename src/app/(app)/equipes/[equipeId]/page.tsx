@@ -45,7 +45,7 @@ export default async function EquipeVueEnsemblePage({
         description="Calendrier de l'équipe et liste des membres."
       />
       <div className="grid gap-6 sm:grid-cols-2">
-        <section className="rounded-lg border border-zinc-200 bg-card-background p-4 dark:border-zinc-700">
+        <section className="rounded-lg border border-zinc-200 bg-card-background-tableau-bord p-4 dark:border-zinc-700">
           <h2 className="font-medium">Calendrier de l&apos;équipe</h2>
           {evenements.length === 0 ? (
             <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
@@ -75,7 +75,7 @@ export default async function EquipeVueEnsemblePage({
             </ul>
           )}
         </section>
-        <section className="rounded-lg border border-zinc-200 bg-card-background p-4 dark:border-zinc-700">
+        <section className="rounded-lg border border-zinc-200 bg-card-background-tableau-bord p-4 dark:border-zinc-700">
           <h2 className="font-medium">Membres</h2>
           {appartenances.length === 0 ? (
             <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">

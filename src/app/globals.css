@@ -13,12 +13,25 @@
   --accent-formulaires: var(--brand-violet);
   --accent-formulaires-dark: var(--brand-violet-dark);
   --accent-tableau-bord: var(--brand-violet);
+
+  --card-background-formulaires: color-mix(
+    in srgb,
+    var(--accent-formulaires) 22%,
+    var(--card-background) 78%
+  );
+  --card-background-tableau-bord: color-mix(
+    in srgb,
+    var(--accent-tableau-bord) 22%,
+    var(--card-background) 78%
+  );
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card-background: var(--card-background);
+  --color-card-background-formulaires: var(--card-background-formulaires);
+  --color-card-background-tableau-bord: var(--card-background-tableau-bord);
   --color-brand-violet: var(--brand-violet);
   --color-brand-violet-dark: var(--brand-violet-dark);
   --color-brand-green: var(--brand-green);
