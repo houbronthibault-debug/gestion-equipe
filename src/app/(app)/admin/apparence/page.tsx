@@ -30,6 +30,12 @@ async function enregistrerApparence(formData: FormData) {
   const couleurFondTableauBord = String(
     formData.get("couleurFondTableauBord") ?? "",
   );
+  const couleurSousElementFormulaires = String(
+    formData.get("couleurSousElementFormulaires") ?? "",
+  );
+  const couleurSousElementTableauBord = String(
+    formData.get("couleurSousElementTableauBord") ?? "",
+  );
   const couleurFond = String(formData.get("couleurFond") ?? "");
   const supprimerImage = formData.get("supprimerImage") === "on";
   const image = formData.get("imageFond");
@@ -60,6 +66,8 @@ async function enregistrerApparence(formData: FormData) {
       couleurTableauBord,
       couleurFondFormulaires,
       couleurFondTableauBord,
+      couleurSousElementFormulaires,
+      couleurSousElementTableauBord,
       couleurFond,
       imageFond,
     },
@@ -69,6 +77,8 @@ async function enregistrerApparence(formData: FormData) {
       couleurTableauBord,
       couleurFondFormulaires,
       couleurFondTableauBord,
+      couleurSousElementFormulaires,
+      couleurSousElementTableauBord,
       couleurFond,
       imageFond,
     },
@@ -164,6 +174,28 @@ export default async function ApparencePage({
                 className="h-10 w-20 rounded border border-zinc-300 dark:border-zinc-700"
               />
             </div>
+            <div className="flex flex-col gap-1">
+              <label
+                htmlFor="couleurSousElementFormulaires"
+                className="text-sm text-zinc-600 dark:text-zinc-400"
+              >
+                Fond des sous-éléments (cadres imbriqués)
+              </label>
+              <input
+                id="couleurSousElementFormulaires"
+                name="couleurSousElementFormulaires"
+                type="color"
+                defaultValue={
+                  parametres?.couleurSousElementFormulaires ??
+                  eclaircirCouleur(
+                    parametres?.couleurFormulaires ??
+                      DEFAUTS.couleurFormulaires,
+                    0.88,
+                  )
+                }
+                className="h-10 w-20 rounded border border-zinc-300 dark:border-zinc-700"
+              />
+            </div>
           </div>
         </div>
 
@@ -205,6 +237,28 @@ export default async function ApparencePage({
                   eclaircirCouleur(
                     parametres?.couleurTableauBord ??
                       DEFAUTS.couleurTableauBord,
+                  )
+                }
+                className="h-10 w-20 rounded border border-zinc-300 dark:border-zinc-700"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label
+                htmlFor="couleurSousElementTableauBord"
+                className="text-sm text-zinc-600 dark:text-zinc-400"
+              >
+                Fond des sous-éléments (cadres imbriqués)
+              </label>
+              <input
+                id="couleurSousElementTableauBord"
+                name="couleurSousElementTableauBord"
+                type="color"
+                defaultValue={
+                  parametres?.couleurSousElementTableauBord ??
+                  eclaircirCouleur(
+                    parametres?.couleurTableauBord ??
+                      DEFAUTS.couleurTableauBord,
+                    0.88,
                   )
                 }
                 className="h-10 w-20 rounded border border-zinc-300 dark:border-zinc-700"

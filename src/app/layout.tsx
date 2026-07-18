@@ -43,6 +43,12 @@ export default async function RootLayout({
     ...(parametres?.couleurFondTableauBord && {
       "--card-background-tableau-bord": parametres.couleurFondTableauBord,
     }),
+    ...(parametres?.couleurSousElementFormulaires && {
+      "--sous-element-formulaires": parametres.couleurSousElementFormulaires,
+    }),
+    ...(parametres?.couleurSousElementTableauBord && {
+      "--sous-element-tableau-bord": parametres.couleurSousElementTableauBord,
+    }),
     ...(parametres?.couleurFond && { "--background": parametres.couleurFond }),
   } as React.CSSProperties;
 

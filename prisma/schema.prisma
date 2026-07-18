@@ -192,14 +192,16 @@ model ReponseIntendance {
 }
 
 model ParametresApparence {
-  id                     String   @id @default("singleton")
-  couleurFormulaires     String?
-  couleurTableauBord     String?
-  couleurFondFormulaires String?
-  couleurFondTableauBord String?
-  couleurFond            String?
-  imageFond              String?
-  updatedAt              DateTime @updatedAt
+  id                            String   @id @default("singleton")
+  couleurFormulaires            String?
+  couleurTableauBord            String?
+  couleurFondFormulaires        String?
+  couleurFondTableauBord        String?
+  couleurSousElementFormulaires String?
+  couleurSousElementTableauBord String?
+  couleurFond                   String?
+  imageFond                     String?
+  updatedAt                     DateTime @updatedAt
 
   @@map("parametres_apparence")
 }

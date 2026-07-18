@@ -57,7 +57,7 @@ export default async function EquipeVueEnsemblePage({
                 <li key={evenement.id}>
                   <Link
                     href={`/equipes/${equipeId}/evenements/${evenement.id}`}
-                    className="block rounded border border-zinc-200 p-2 text-sm hover:border-accent-tableau-bord dark:border-zinc-700"
+                    className="block rounded border border-zinc-200 bg-sous-element-tableau-bord p-2 text-sm hover:border-accent-tableau-bord dark:border-zinc-700"
                   >
                     <p className="font-medium">
                       {LIBELLES_TYPE[evenement.type] ?? evenement.type} —{" "}
@@ -84,7 +84,10 @@ export default async function EquipeVueEnsemblePage({
           ) : (
             <ul className="mt-3 flex flex-col gap-1 text-sm">
               {appartenances.map((appartenance) => (
-                <li key={appartenance.id}>
+                <li
+                  key={appartenance.id}
+                  className="rounded bg-sous-element-tableau-bord px-2 py-1.5"
+                >
                   {appartenance.utilisateur.nomPrenom}{" "}
                   <span className="text-zinc-500">
                     ({appartenance.role === "COACH" ? "Coach" : "Joueur"})

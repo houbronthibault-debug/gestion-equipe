@@ -509,7 +509,7 @@ export default async function EvenementDetailPage({
                 return (
                   <li
                     key={p.id}
-                    className="flex flex-wrap items-center justify-between gap-2 text-sm"
+                    className="flex flex-wrap items-center justify-between gap-2 rounded bg-sous-element-formulaires px-2 py-1.5 text-sm"
                   >
                     <span>
                       {p.utilisateur.nomPrenom}
@@ -747,7 +747,10 @@ export default async function EvenementDetailPage({
                         confirmerSuppression === question.id;
 
                       return (
-                        <li key={question.id} className="text-sm">
+                        <li
+                          key={question.id}
+                          className="rounded bg-sous-element-formulaires p-2 text-sm"
+                        >
                           <div className="flex items-center justify-between gap-2">
                             <span>
                               {question.libelle}{" "}
@@ -1006,7 +1009,10 @@ export default async function EvenementDetailPage({
                     raisons.push("infos intendance non complétées");
                   }
                   return (
-                    <li key={retardataire.id}>
+                    <li
+                      key={retardataire.id}
+                      className="rounded bg-sous-element-tableau-bord px-2 py-1.5"
+                    >
                       {retardataire.utilisateur.nomPrenom} —{" "}
                       {raisons.join(", ")}
                     </li>

@@ -24,6 +24,17 @@
     var(--accent-tableau-bord) 22%,
     var(--card-background) 78%
   );
+
+  --sous-element-formulaires: color-mix(
+    in srgb,
+    var(--accent-formulaires) 12%,
+    var(--card-background-formulaires) 88%
+  );
+  --sous-element-tableau-bord: color-mix(
+    in srgb,
+    var(--accent-tableau-bord) 12%,
+    var(--card-background-tableau-bord) 88%
+  );
 }
 
 @theme inline {
@@ -32,6 +43,8 @@
   --color-card-background: var(--card-background);
   --color-card-background-formulaires: var(--card-background-formulaires);
   --color-card-background-tableau-bord: var(--card-background-tableau-bord);
+  --color-sous-element-formulaires: var(--sous-element-formulaires);
+  --color-sous-element-tableau-bord: var(--sous-element-tableau-bord);
   --color-brand-violet: var(--brand-violet);
   --color-brand-violet-dark: var(--brand-violet-dark);
   --color-brand-green: var(--brand-green);

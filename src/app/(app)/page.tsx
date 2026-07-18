@@ -83,7 +83,7 @@ export default async function TableauDeBordPage() {
                 <li key={evenement.id}>
                   <Link
                     href={`/equipes/${evenement.equipeId}/evenements/${evenement.id}`}
-                    className="block rounded border border-zinc-200 p-2 text-sm hover:border-accent-tableau-bord dark:border-zinc-700"
+                    className="block rounded border border-zinc-200 bg-sous-element-tableau-bord p-2 text-sm hover:border-accent-tableau-bord dark:border-zinc-700"
                   >
                     <p className="font-medium">
                       {LIBELLES_TYPE[evenement.type] ?? evenement.type} —{" "}
@@ -114,7 +114,7 @@ export default async function TableauDeBordPage() {
                 <li key={participation.id}>
                   <Link
                     href={`/equipes/${participation.evenement.equipeId}/evenements/${participation.evenement.id}`}
-                    className="block rounded border border-zinc-200 p-2 text-sm hover:border-accent-tableau-bord dark:border-zinc-700"
+                    className="block rounded border border-zinc-200 bg-sous-element-tableau-bord p-2 text-sm hover:border-accent-tableau-bord dark:border-zinc-700"
                   >
                     <p className="font-medium">
                       {LIBELLES_TYPE[participation.evenement.type] ??
