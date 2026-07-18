@@ -6,6 +6,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { getParametresApparence } from "@/lib/parametresApparence";
 import { uploaderAssetPublic } from "@/lib/supabase";
+import { eclaircirCouleur } from "@/lib/couleurs";
 
 const DEFAUTS = {
   couleurFormulaires: "#643e8c",
@@ -23,6 +24,12 @@ async function enregistrerApparence(formData: FormData) {
 
   const couleurFormulaires = String(formData.get("couleurFormulaires") ?? "");
   const couleurTableauBord = String(formData.get("couleurTableauBord") ?? "");
+  const couleurFondFormulaires = String(
+    formData.get("couleurFondFormulaires") ?? "",
+  );
+  const couleurFondTableauBord = String(
+    formData.get("couleurFondTableauBord") ?? "",
+  );
   const couleurFond = String(formData.get("couleurFond") ?? "");
   const supprimerImage = formData.get("supprimerImage") === "on";
   const image = formData.get("imageFond");
@@ -48,11 +55,20 @@ async function enregistrerApparence(formData: FormData) {
 
   await prisma.parametresApparence.upsert({
     where: { id: "singleton" },
-    update: { couleurFormulaires, couleurTableauBord, couleurFond, imageFond },
+    update: {
+      couleurFormulaires,
+      couleurTableauBord,
+      couleurFondFormulaires,
+      couleurFondTableauBord,
+      couleurFond,
+      imageFond,
+    },
     create: {
       id: "singleton",
       couleurFormulaires,
       couleurTableauBord,
+      couleurFondFormulaires,
+      couleurFondTableauBord,
       couleurFond,
       imageFond,
     },
@@ -107,34 +123,94 @@ export default async function ApparencePage({
         action={enregistrerApparence}
         className="flex max-w-lg flex-col gap-5"
       >
-        <div className="flex flex-col gap-1">
-          <label htmlFor="couleurFormulaires" className="text-sm font-medium">
-            Couleur des formulaires (boutons, actions)
-          </label>
-          <input
-            id="couleurFormulaires"
-            name="couleurFormulaires"
-            type="color"
-            defaultValue={
-              parametres?.couleurFormulaires ?? DEFAUTS.couleurFormulaires
-            }
-            className="h-10 w-20 rounded border border-zinc-300 dark:border-zinc-700"
-          />
+        <div className="flex flex-col gap-3 border-b border-zinc-200 pb-4 dark:border-zinc-700">
+          <p className="text-sm font-medium">Formulaires</p>
+          <div className="flex flex-wrap gap-6">
+            <div className="flex flex-col gap-1">
+              <label
+                htmlFor="couleurFormulaires"
+                className="text-sm text-zinc-600 dark:text-zinc-400"
+              >
+                Boutons
+              </label>
+              <input
+                id="couleurFormulaires"
+                name="couleurFormulaires"
+                type="color"
+                defaultValue={
+                  parametres?.couleurFormulaires ?? DEFAUTS.couleurFormulaires
+                }
+                className="h-10 w-20 rounded border border-zinc-300 dark:border-zinc-700"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label
+                htmlFor="couleurFondFormulaires"
+                className="text-sm text-zinc-600 dark:text-zinc-400"
+              >
+                Fond des cadres
+              </label>
+              <input
+                id="couleurFondFormulaires"
+                name="couleurFondFormulaires"
+                type="color"
+                defaultValue={
+                  parametres?.couleurFondFormulaires ??
+                  eclaircirCouleur(
+                    parametres?.couleurFormulaires ??
+                      DEFAUTS.couleurFormulaires,
+                  )
+                }
+                className="h-10 w-20 rounded border border-zinc-300 dark:border-zinc-700"
+              />
+            </div>
+          </div>
         </div>
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor="couleurTableauBord" className="text-sm font-medium">
-            Couleur des éléments du tableau de bord (menus, cartes en survol)
-          </label>
-          <input
-            id="couleurTableauBord"
-            name="couleurTableauBord"
-            type="color"
-            defaultValue={
-              parametres?.couleurTableauBord ?? DEFAUTS.couleurTableauBord
-            }
-            className="h-10 w-20 rounded border border-zinc-300 dark:border-zinc-700"
-          />
+        <div className="flex flex-col gap-3 border-b border-zinc-200 pb-4 dark:border-zinc-700">
+          <p className="text-sm font-medium">
+            Éléments du tableau de bord (menus, cartes)
+          </p>
+          <div className="flex flex-wrap gap-6">
+            <div className="flex flex-col gap-1">
+              <label
+                htmlFor="couleurTableauBord"
+                className="text-sm text-zinc-600 dark:text-zinc-400"
+              >
+                Survol / accents
+              </label>
+              <input
+                id="couleurTableauBord"
+                name="couleurTableauBord"
+                type="color"
+                defaultValue={
+                  parametres?.couleurTableauBord ?? DEFAUTS.couleurTableauBord
+                }
+                className="h-10 w-20 rounded border border-zinc-300 dark:border-zinc-700"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label
+                htmlFor="couleurFondTableauBord"
+                className="text-sm text-zinc-600 dark:text-zinc-400"
+              >
+                Fond des cadres
+              </label>
+              <input
+                id="couleurFondTableauBord"
+                name="couleurFondTableauBord"
+                type="color"
+                defaultValue={
+                  parametres?.couleurFondTableauBord ??
+                  eclaircirCouleur(
+                    parametres?.couleurTableauBord ??
+                      DEFAUTS.couleurTableauBord,
+                  )
+                }
+                className="h-10 w-20 rounded border border-zinc-300 dark:border-zinc-700"
+              />
+            </div>
+          </div>
         </div>
 
         <div className="flex flex-col gap-1">
