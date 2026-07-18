@@ -6,8 +6,29 @@ export const supabaseAdmin = createClient(
 );
 
 export const DOCUMENTS_BUCKET = "documents";
+export const ASSETS_PUBLICS_BUCKET = "assets-publics";
 
 const STORAGE_PREFIX = "storage://";
+
+export async function uploaderAssetPublic(chemin: string, fichier: File) {
+  await supabaseAdmin.storage
+    .createBucket(ASSETS_PUBLICS_BUCKET, { public: true })
+    .catch(() => {});
+
+  const { error } = await supabaseAdmin.storage
+    .from(ASSETS_PUBLICS_BUCKET)
+    .upload(chemin, fichier, { contentType: fichier.type || undefined, upsert: true });
+
+  if (error) {
+    return null;
+  }
+
+  const { data } = supabaseAdmin.storage
+    .from(ASSETS_PUBLICS_BUCKET)
+    .getPublicUrl(chemin);
+
+  return data.publicUrl;
+}
 
 export function estCheminStorage(fichierOuLien: string) {
   return fichierOuLien.startsWith(STORAGE_PREFIX);

@@ -3,20 +3,29 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --card-background: #ffffff;
 
   --brand-violet: #643e8c;
   --brand-violet-dark: #4a2e69;
   --brand-green: #11a339;
   --brand-black: #000000;
+
+  --accent-formulaires: var(--brand-violet);
+  --accent-formulaires-dark: var(--brand-violet-dark);
+  --accent-tableau-bord: var(--brand-violet);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card-background: var(--card-background);
   --color-brand-violet: var(--brand-violet);
   --color-brand-violet-dark: var(--brand-violet-dark);
   --color-brand-green: var(--brand-green);
   --color-brand-black: var(--brand-black);
+  --color-accent-formulaires: var(--accent-formulaires);
+  --color-accent-formulaires-dark: var(--accent-formulaires-dark);
+  --color-accent-tableau-bord: var(--accent-tableau-bord);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -25,6 +34,7 @@
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --card-background: #18181b;
   }
 }
 

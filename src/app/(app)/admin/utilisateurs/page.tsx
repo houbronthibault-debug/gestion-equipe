@@ -65,7 +65,7 @@ export default async function GestionUtilisateursPage({
         {utilisateurs.map((utilisateur) => (
           <li
             key={utilisateur.id}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-card-background p-4 dark:border-zinc-700"
           >
             <div>
               <p className="font-medium">
@@ -74,7 +74,7 @@ export default async function GestionUtilisateursPage({
                   ({utilisateur.pseudo})
                 </span>
                 {utilisateur.estAdmin && (
-                  <span className="ml-2 rounded bg-brand-violet px-2 py-0.5 text-xs font-medium text-white">
+                  <span className="ml-2 rounded bg-accent-formulaires px-2 py-0.5 text-xs font-medium text-white">
                     Admin
                   </span>
                 )}

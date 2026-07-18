@@ -56,7 +56,7 @@ export default async function MesEquipesPage() {
             <li key={equipe.id}>
               <Link
                 href={`/equipes/${equipe.id}`}
-                className="block rounded-lg border border-zinc-200 p-4 hover:border-brand-violet dark:border-zinc-800"
+                className="block rounded-lg border border-zinc-200 bg-card-background p-4 hover:border-accent-tableau-bord dark:border-zinc-700"
               >
                 <p className="font-medium">{equipe.nom}</p>
                 <p className="text-sm text-zinc-600 dark:text-zinc-400">

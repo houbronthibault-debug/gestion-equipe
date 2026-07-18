@@ -31,7 +31,7 @@ export default async function DocumentsClubPage() {
           {documentsAvecUrl.map(({ document, url }) => (
             <li
               key={document.id}
-              className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800"
+              className="rounded-lg border border-zinc-200 bg-card-background p-4 dark:border-zinc-700"
             >
               {url ? (
                 <a

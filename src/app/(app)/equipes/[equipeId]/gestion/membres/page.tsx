@@ -103,7 +103,7 @@ export default async function GestionMembresPage({
         description="Ajouter ou retirer un coach ou un joueur de l'équipe."
       />
 
-      <section className="mb-8 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+      <section className="mb-8 rounded-lg border border-zinc-200 bg-card-background p-4 dark:border-zinc-700">
         <h2 className="font-medium">Ajouter un membre</h2>
         {utilisateursValides.length === 0 ? (
           <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
@@ -144,7 +144,7 @@ export default async function GestionMembresPage({
             </div>
             <button
               type="submit"
-              className="rounded bg-brand-violet px-4 py-2 text-sm font-medium text-white hover:bg-brand-violet-dark"
+              className="rounded bg-accent-formulaires px-4 py-2 text-sm font-medium text-white hover:bg-accent-formulaires-dark"
             >
               Ajouter
             </button>
@@ -163,7 +163,7 @@ export default async function GestionMembresPage({
             {appartenances.map((appartenance) => (
               <li
                 key={appartenance.id}
-                className="flex items-center justify-between rounded-lg border border-zinc-200 p-4 dark:border-zinc-800"
+                className="flex items-center justify-between rounded-lg border border-zinc-200 bg-card-background p-4 dark:border-zinc-700"
               >
                 <div>
                   <p className="font-medium">

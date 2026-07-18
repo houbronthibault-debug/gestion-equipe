@@ -34,7 +34,7 @@ export default async function EquipeLayout({
   return (
     <div>
       {NAV_ITEMS.length > 0 && (
-        <nav className="mb-6 flex gap-4 border-b border-zinc-200 pb-3 text-sm dark:border-zinc-800">
+        <nav className="mb-6 flex gap-4 border-b border-zinc-200 pb-3 text-sm dark:border-zinc-700">
           {NAV_ITEMS.map((item) => (
             <Link key={item.href} href={item.href} className="hover:underline">
               {item.label}

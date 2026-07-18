@@ -191,6 +191,17 @@ model ReponseIntendance {
   @@map("reponses_intendance")
 }
 
+model ParametresApparence {
+  id                 String   @id @default("singleton")
+  couleurFormulaires String?
+  couleurTableauBord String?
+  couleurFond        String?
+  imageFond          String?
+  updatedAt          DateTime @updatedAt
+
+  @@map("parametres_apparence")
+}
+
 model Document {
   id            String   @id @default(cuid())
   equipeId      String?

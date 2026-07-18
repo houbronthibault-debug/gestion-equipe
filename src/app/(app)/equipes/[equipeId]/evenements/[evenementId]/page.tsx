@@ -424,7 +424,7 @@ export default async function EvenementDetailPage({
     <>
       <PageHeader title="Détail de l'événement" description={evenement.lieu} />
       <div className="flex flex-col gap-6">
-        <section className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+        <section className="rounded-lg border border-zinc-200 bg-card-background p-4 dark:border-zinc-700">
           <h2 className="font-medium">Infos générales</h2>
           <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
             {evenement.type} — {evenement.lieu}
@@ -443,7 +443,7 @@ export default async function EvenementDetailPage({
           )}
 
           {editableInfos && (
-            <div className="mt-4 border-t border-zinc-200 pt-3 dark:border-zinc-800">
+            <div className="mt-4 border-t border-zinc-200 pt-3 dark:border-zinc-700">
               {confirmerSuppressionEvenement ? (
                 <div className="flex flex-col gap-2 rounded border border-red-300 bg-red-50 px-3 py-2 dark:border-red-900 dark:bg-red-950">
                   <p className="text-xs text-red-700 dark:text-red-400">
@@ -484,7 +484,7 @@ export default async function EvenementDetailPage({
           )}
         </section>
 
-        <section className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+        <section className="rounded-lg border border-zinc-200 bg-card-background p-4 dark:border-zinc-700">
           <h2 className="font-medium">Participants</h2>
           {participants.length === 0 ? (
             <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
@@ -543,7 +543,7 @@ export default async function EvenementDetailPage({
           )}
 
           {editableInfos && (
-            <div className="mt-4 border-t border-zinc-200 pt-3 dark:border-zinc-800">
+            <div className="mt-4 border-t border-zinc-200 pt-3 dark:border-zinc-700">
               {utilisateursEligibles.length === 0 ? (
                 <p className="text-sm text-zinc-600 dark:text-zinc-400">
                   Tous les comptes validés participent déjà.
@@ -576,7 +576,7 @@ export default async function EvenementDetailPage({
                   </div>
                   <button
                     type="submit"
-                    className="rounded bg-brand-violet px-4 py-2 text-sm font-medium text-white hover:bg-brand-violet-dark"
+                    className="rounded bg-accent-formulaires px-4 py-2 text-sm font-medium text-white hover:bg-accent-formulaires-dark"
                   >
                     Ajouter
                   </button>
@@ -586,7 +586,7 @@ export default async function EvenementDetailPage({
           )}
         </section>
 
-        <section className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+        <section className="rounded-lg border border-zinc-200 bg-card-background p-4 dark:border-zinc-700">
           <h2 className="font-medium">Confirmation de présence</h2>
           {participation ? (
             <>
@@ -613,7 +613,7 @@ export default async function EvenementDetailPage({
                   <button
                     type="submit"
                     disabled={participation.statutPresence === "CONFIRME"}
-                    className="rounded bg-brand-violet px-4 py-2 text-sm font-medium text-white hover:bg-brand-violet-dark disabled:opacity-50"
+                    className="rounded bg-accent-formulaires px-4 py-2 text-sm font-medium text-white hover:bg-accent-formulaires-dark disabled:opacity-50"
                   >
                     Présent
                   </button>
@@ -645,7 +645,7 @@ export default async function EvenementDetailPage({
 
         {concerneIntendanceEtCapitaine &&
           (editableCapitaine || evenement.notesCapitaine) && (
-          <section className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+          <section className="rounded-lg border border-zinc-200 bg-card-background p-4 dark:border-zinc-700">
             <h2 className="font-medium">Espace capitaine</h2>
 
             {editableCapitaine ? (
@@ -668,7 +668,7 @@ export default async function EvenementDetailPage({
                 </div>
                 <button
                   type="submit"
-                  className="self-start rounded bg-brand-violet px-4 py-2 text-sm font-medium text-white hover:bg-brand-violet-dark"
+                  className="self-start rounded bg-accent-formulaires px-4 py-2 text-sm font-medium text-white hover:bg-accent-formulaires-dark"
                 >
                   Enregistrer
                 </button>
@@ -685,12 +685,12 @@ export default async function EvenementDetailPage({
           (editableIntendance || questions.length > 0) && (
           <section
             id="intendance"
-            className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800"
+            className="rounded-lg border border-zinc-200 bg-card-background p-4 dark:border-zinc-700"
           >
             <h2 className="font-medium">Espace intendance</h2>
 
             {editableIntendance && (
-              <div className="mt-3 border-b border-zinc-200 pb-4 dark:border-zinc-800">
+              <div className="mt-3 border-b border-zinc-200 pb-4 dark:border-zinc-700">
                 <h3 className="text-sm font-medium">Ajouter une question</h3>
                 <form
                   action={ajouterQuestionIntendance.bind(
@@ -720,7 +720,7 @@ export default async function EvenementDetailPage({
                   </p>
                   <button
                     type="submit"
-                    className="self-start rounded bg-brand-violet px-4 py-2 text-sm font-medium text-white hover:bg-brand-violet-dark"
+                    className="self-start rounded bg-accent-formulaires px-4 py-2 text-sm font-medium text-white hover:bg-accent-formulaires-dark"
                   >
                     Ajouter la question
                   </button>
@@ -837,13 +837,13 @@ export default async function EvenementDetailPage({
                     <table className="w-full min-w-max border-collapse text-sm">
                       <thead>
                         <tr>
-                          <th className="border-b border-zinc-200 py-2 pr-4 text-left font-medium dark:border-zinc-800">
+                          <th className="border-b border-zinc-200 py-2 pr-4 text-left font-medium dark:border-zinc-700">
                             Joueur
                           </th>
                           {questions.map((question) => (
                             <th
                               key={question.id}
-                              className="border-b border-zinc-200 py-2 pr-4 text-left font-medium dark:border-zinc-800"
+                              className="border-b border-zinc-200 py-2 pr-4 text-left font-medium dark:border-zinc-700"
                             >
                               {question.libelle}
                             </th>
@@ -853,7 +853,7 @@ export default async function EvenementDetailPage({
                       <tbody>
                         {participants.map((p) => (
                           <tr key={p.id}>
-                            <td className="border-b border-zinc-200 py-2 pr-4 dark:border-zinc-800">
+                            <td className="border-b border-zinc-200 py-2 pr-4 dark:border-zinc-700">
                               {p.utilisateur.nomPrenom}
                             </td>
                             {questions.map((question) => {
@@ -870,7 +870,7 @@ export default async function EvenementDetailPage({
                               return (
                                 <td
                                   key={question.id}
-                                  className="border-b border-zinc-200 py-2 pr-4 text-zinc-600 dark:border-zinc-800 dark:text-zinc-400"
+                                  className="border-b border-zinc-200 py-2 pr-4 text-zinc-600 dark:border-zinc-700 dark:text-zinc-400"
                                 >
                                   {texte ?? "—"}
                                 </td>
@@ -886,7 +886,7 @@ export default async function EvenementDetailPage({
                 {participation && (
                   <form
                     action={repondreIntendance.bind(null, equipeId, evenementId)}
-                    className="mt-4 flex flex-col gap-4 border-t border-zinc-200 pt-4 dark:border-zinc-800"
+                    className="mt-4 flex flex-col gap-4 border-t border-zinc-200 pt-4 dark:border-zinc-700"
                   >
                     <h3 className="text-sm font-medium">Mes réponses</h3>
                     {questions.map((question) => {
@@ -959,7 +959,7 @@ export default async function EvenementDetailPage({
                     })}
                     <button
                       type="submit"
-                      className="self-start rounded bg-brand-violet px-4 py-2 text-sm font-medium text-white hover:bg-brand-violet-dark"
+                      className="self-start rounded bg-accent-formulaires px-4 py-2 text-sm font-medium text-white hover:bg-accent-formulaires-dark"
                     >
                       Enregistrer mes réponses
                     </button>
@@ -971,7 +971,7 @@ export default async function EvenementDetailPage({
         )}
 
         {peutRelancer && (
-          <section className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+          <section className="rounded-lg border border-zinc-200 bg-card-background p-4 dark:border-zinc-700">
             <h2 className="font-medium">Relance</h2>
             <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
               Relance les participants n&apos;ayant pas confirmé leur présence
@@ -1020,7 +1020,7 @@ export default async function EvenementDetailPage({
               <button
                 type="submit"
                 disabled={retardataires.length === 0}
-                className="mt-3 rounded bg-brand-violet px-4 py-2 text-sm font-medium text-white hover:bg-brand-violet-dark disabled:opacity-50"
+                className="mt-3 rounded bg-accent-formulaires px-4 py-2 text-sm font-medium text-white hover:bg-accent-formulaires-dark disabled:opacity-50"
               >
                 Relancer les retardataires
               </button>

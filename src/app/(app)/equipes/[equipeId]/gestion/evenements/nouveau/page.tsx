@@ -187,7 +187,7 @@ export default async function CreationEvenementPage({
         )}
         <button
           type="submit"
-          className="mt-2 self-start rounded bg-brand-violet px-4 py-2 text-sm font-medium text-white hover:bg-brand-violet-dark"
+          className="mt-2 self-start rounded bg-accent-formulaires px-4 py-2 text-sm font-medium text-white hover:bg-accent-formulaires-dark"
         >
           Créer l&apos;événement
         </button>

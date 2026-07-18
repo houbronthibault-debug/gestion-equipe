@@ -45,7 +45,7 @@ export default async function EquipeVueEnsemblePage({
         description="Calendrier de l'équipe et liste des membres."
       />
       <div className="grid gap-6 sm:grid-cols-2">
-        <section className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+        <section className="rounded-lg border border-zinc-200 bg-card-background p-4 dark:border-zinc-700">
           <h2 className="font-medium">Calendrier de l&apos;équipe</h2>
           {evenements.length === 0 ? (
             <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
@@ -57,7 +57,7 @@ export default async function EquipeVueEnsemblePage({
                 <li key={evenement.id}>
                   <Link
                     href={`/equipes/${equipeId}/evenements/${evenement.id}`}
-                    className="block rounded border border-zinc-200 p-2 text-sm hover:border-brand-violet dark:border-zinc-800"
+                    className="block rounded border border-zinc-200 p-2 text-sm hover:border-accent-tableau-bord dark:border-zinc-700"
                   >
                     <p className="font-medium">
                       {LIBELLES_TYPE[evenement.type] ?? evenement.type} —{" "}
@@ -75,7 +75,7 @@ export default async function EquipeVueEnsemblePage({
             </ul>
           )}
         </section>
-        <section className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+        <section className="rounded-lg border border-zinc-200 bg-card-background p-4 dark:border-zinc-700">
           <h2 className="font-medium">Membres</h2>
           {appartenances.length === 0 ? (
             <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">

@@ -71,7 +71,7 @@ export default async function TableauDeBordPage() {
         description="Calendrier unifié toutes équipes confondues et actions en attente."
       />
       <div className="grid gap-6 sm:grid-cols-2">
-        <section className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+        <section className="rounded-lg border border-zinc-200 bg-card-background p-4 dark:border-zinc-700">
           <h2 className="font-medium">Calendrier</h2>
           {evenements.length === 0 ? (
             <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
@@ -83,7 +83,7 @@ export default async function TableauDeBordPage() {
                 <li key={evenement.id}>
                   <Link
                     href={`/equipes/${evenement.equipeId}/evenements/${evenement.id}`}
-                    className="block rounded border border-zinc-200 p-2 text-sm hover:border-brand-violet dark:border-zinc-800"
+                    className="block rounded border border-zinc-200 p-2 text-sm hover:border-accent-tableau-bord dark:border-zinc-700"
                   >
                     <p className="font-medium">
                       {LIBELLES_TYPE[evenement.type] ?? evenement.type} —{" "}
@@ -102,7 +102,7 @@ export default async function TableauDeBordPage() {
             </ul>
           )}
         </section>
-        <section className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+        <section className="rounded-lg border border-zinc-200 bg-card-background p-4 dark:border-zinc-700">
           <h2 className="font-medium">Actions en attente</h2>
           {actionsEnAttente.length === 0 ? (
             <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
@@ -114,7 +114,7 @@ export default async function TableauDeBordPage() {
                 <li key={participation.id}>
                   <Link
                     href={`/equipes/${participation.evenement.equipeId}/evenements/${participation.evenement.id}`}
-                    className="block rounded border border-zinc-200 p-2 text-sm hover:border-brand-violet dark:border-zinc-800"
+                    className="block rounded border border-zinc-200 p-2 text-sm hover:border-accent-tableau-bord dark:border-zinc-700"
                   >
                     <p className="font-medium">
                       {LIBELLES_TYPE[participation.evenement.type] ??

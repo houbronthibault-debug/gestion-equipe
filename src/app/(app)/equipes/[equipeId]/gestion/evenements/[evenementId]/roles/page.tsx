@@ -105,7 +105,7 @@ export default async function DesignationRolesPage({
         description={`Événement : ${evenement.lieu}. Les personnes désignées doivent être membres de l'équipe organisatrice.`}
       />
 
-      <section className="mb-8 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+      <section className="mb-8 rounded-lg border border-zinc-200 bg-card-background p-4 dark:border-zinc-700">
         <h2 className="font-medium">Désigner</h2>
         {membres.length === 0 ? (
           <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
@@ -152,7 +152,7 @@ export default async function DesignationRolesPage({
             </div>
             <button
               type="submit"
-              className="rounded bg-brand-violet px-4 py-2 text-sm font-medium text-white hover:bg-brand-violet-dark"
+              className="rounded bg-accent-formulaires px-4 py-2 text-sm font-medium text-white hover:bg-accent-formulaires-dark"
             >
               Désigner
             </button>
@@ -171,7 +171,7 @@ export default async function DesignationRolesPage({
             {assignations.map((assignation) => (
               <li
                 key={assignation.id}
-                className="flex items-center justify-between rounded-lg border border-zinc-200 p-4 dark:border-zinc-800"
+                className="flex items-center justify-between rounded-lg border border-zinc-200 bg-card-background p-4 dark:border-zinc-700"
               >
                 <div>
                   <p className="font-medium">

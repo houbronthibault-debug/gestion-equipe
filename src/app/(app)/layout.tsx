@@ -38,7 +38,7 @@ export default async function AppLayout({
               <Link
                 key={item.href}
                 href={item.href}
-                className="rounded px-3 py-2 text-sm font-medium text-zinc-300 transition-colors hover:bg-brand-violet/25 hover:text-white"
+                className="rounded px-3 py-2 text-sm font-medium text-zinc-300 transition-colors hover:bg-accent-tableau-bord/25 hover:text-white"
               >
                 {item.label}
               </Link>
@@ -46,7 +46,7 @@ export default async function AppLayout({
             {session.user.estAdmin && (
               <Link
                 href="/admin/inscriptions"
-                className="rounded px-3 py-2 text-sm font-medium text-zinc-300 transition-colors hover:bg-brand-violet/25 hover:text-white"
+                className="rounded px-3 py-2 text-sm font-medium text-zinc-300 transition-colors hover:bg-accent-tableau-bord/25 hover:text-white"
               >
                 Back-office
               </Link>
@@ -63,7 +63,7 @@ export default async function AppLayout({
         </form>
       </aside>
 
-      <div className="flex flex-col border-b border-zinc-200 dark:border-zinc-800 md:hidden">
+      <div className="flex flex-col border-b border-zinc-200 dark:border-zinc-700 md:hidden">
         <header className="flex items-center justify-between px-4 py-3">
           <Link href="/" className="flex items-center gap-2">
             <Image src="/logo.png" alt="Club PUC" width={28} height={24} />

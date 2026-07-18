@@ -65,7 +65,7 @@ export default async function GestionRolesPage({
         {utilisateurs.map((utilisateur) => (
           <li
             key={utilisateur.id}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-card-background p-4 dark:border-zinc-700"
           >
             <div>
               <p className="font-medium">
@@ -91,7 +91,7 @@ export default async function GestionRolesPage({
                   type="submit"
                   className={
                     utilisateur.estAdmin
-                      ? "rounded bg-brand-violet px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-violet-dark"
+                      ? "rounded bg-accent-formulaires px-3 py-1.5 text-sm font-medium text-white hover:bg-accent-formulaires-dark"
                       : "rounded border border-zinc-300 px-3 py-1.5 text-sm font-medium dark:border-zinc-700"
                   }
                 >
@@ -110,7 +110,7 @@ export default async function GestionRolesPage({
                   type="submit"
                   className={
                     utilisateur.estMembreBureau
-                      ? "rounded bg-brand-violet px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-violet-dark"
+                      ? "rounded bg-accent-formulaires px-3 py-1.5 text-sm font-medium text-white hover:bg-accent-formulaires-dark"
                       : "rounded border border-zinc-300 px-3 py-1.5 text-sm font-medium dark:border-zinc-700"
                   }
                 >

@@ -12,7 +12,7 @@ export default function PublicLayout({
           <Image src="/logo.png" alt="Club PUC" width={64} height={54} />
           <span className="font-semibold text-white">Club PUC</span>
         </div>
-        <div className="rounded-lg border border-zinc-200 bg-white p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+        <div className="rounded-lg border border-zinc-200 bg-card-background p-8 shadow-sm dark:border-zinc-700">
           {children}
         </div>
       </div>
