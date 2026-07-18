@@ -30,7 +30,28 @@ async function ajouterMembre(equipeId: string, formData: FormData) {
     create: { utilisateurId, equipeId, role },
   });
 
+  const evenementsAVenir = await prisma.evenement.findMany({
+    where: { equipeId, dateDebut: { gte: new Date() } },
+    select: { id: true },
+  });
+
+  await Promise.all(
+    evenementsAVenir.map((evenement) =>
+      prisma.participation.upsert({
+        where: {
+          utilisateurId_evenementId: {
+            utilisateurId,
+            evenementId: evenement.id,
+          },
+        },
+        update: {},
+        create: { utilisateurId, evenementId: evenement.id },
+      }),
+    ),
+  );
+
   revalidatePath(`/equipes/${equipeId}/gestion/membres`);
+  revalidatePath(`/equipes/${equipeId}`);
 }
 
 async function retirerMembre(equipeId: string, formData: FormData) {
