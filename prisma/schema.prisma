@@ -201,6 +201,7 @@ model ParametresApparence {
   couleurSousElementTableauBord String?
   couleurFond                   String?
   imageFond                     String?
+  utiliserDegradeConnexion      Boolean  @default(false)
   updatedAt                     DateTime @updatedAt
 
   @@map("parametres_apparence")

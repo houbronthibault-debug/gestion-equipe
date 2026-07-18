@@ -37,6 +37,8 @@ async function enregistrerApparence(formData: FormData) {
     formData.get("couleurSousElementTableauBord") ?? "",
   );
   const couleurFond = String(formData.get("couleurFond") ?? "");
+  const utiliserDegradeConnexion =
+    formData.get("utiliserDegradeConnexion") === "on";
   const supprimerImage = formData.get("supprimerImage") === "on";
   const image = formData.get("imageFond");
 
@@ -70,6 +72,7 @@ async function enregistrerApparence(formData: FormData) {
       couleurSousElementTableauBord,
       couleurFond,
       imageFond,
+      utiliserDegradeConnexion,
     },
     create: {
       id: "singleton",
@@ -81,6 +84,7 @@ async function enregistrerApparence(formData: FormData) {
       couleurSousElementTableauBord,
       couleurFond,
       imageFond,
+      utiliserDegradeConnexion,
     },
   });
 
@@ -265,6 +269,22 @@ export default async function ApparencePage({
               />
             </div>
           </div>
+        </div>
+
+        <div className="flex flex-col gap-2 border-b border-zinc-200 pb-4 dark:border-zinc-700">
+          <label className="flex items-center gap-2 text-sm font-medium">
+            <input
+              type="checkbox"
+              name="utiliserDegradeConnexion"
+              defaultChecked={parametres?.utiliserDegradeConnexion ?? false}
+            />
+            Utiliser le dégradé violet/noir de la page de connexion comme fond
+            du site
+          </label>
+          <p className="text-xs text-zinc-500">
+            Si activé, ce dégradé remplace la couleur et l&apos;image de fond
+            ci-dessous sur toutes les pages une fois connecté.
+          </p>
         </div>
 
         <div className="flex flex-col gap-1">

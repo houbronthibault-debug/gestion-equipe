@@ -53,14 +53,20 @@ export default async function RootLayout({
   } as React.CSSProperties;
 
   const bodyStyle: React.CSSProperties = {};
-  if (parametres?.couleurFond) {
-    bodyStyle.backgroundColor = parametres.couleurFond;
-  }
-  if (parametres?.imageFond) {
-    bodyStyle.backgroundImage = `url(${parametres.imageFond})`;
-    bodyStyle.backgroundSize = "cover";
-    bodyStyle.backgroundPosition = "center";
+  if (parametres?.utiliserDegradeConnexion) {
+    bodyStyle.backgroundImage =
+      "linear-gradient(to bottom right, var(--brand-black), var(--brand-violet-dark), var(--brand-black))";
     bodyStyle.backgroundAttachment = "fixed";
+  } else {
+    if (parametres?.couleurFond) {
+      bodyStyle.backgroundColor = parametres.couleurFond;
+    }
+    if (parametres?.imageFond) {
+      bodyStyle.backgroundImage = `url(${parametres.imageFond})`;
+      bodyStyle.backgroundSize = "cover";
+      bodyStyle.backgroundPosition = "center";
+      bodyStyle.backgroundAttachment = "fixed";
+    }
   }
 
   return (
