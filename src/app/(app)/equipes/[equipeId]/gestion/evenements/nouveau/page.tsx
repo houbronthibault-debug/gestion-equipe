@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import { PageHeader } from "@/components/PageHeader";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { envoyerEmail } from "@/lib/email";
 import { peutCreerEvenement } from "@/lib/permissions";
 
 const TYPES_EVENEMENT = [
@@ -58,7 +57,6 @@ async function creerEvenement(equipeId: string, formData: FormData) {
 
   const appartenances = await prisma.appartenance.findMany({
     where: { equipeId },
-    include: { utilisateur: true },
     distinct: ["utilisateurId"],
   });
 
@@ -70,18 +68,6 @@ async function creerEvenement(equipeId: string, formData: FormData) {
       })),
       skipDuplicates: true,
     });
-
-    const lienEvenement = `${process.env.APP_URL}/equipes/${equipeId}/evenements/${evenement.id}`;
-
-    await Promise.all(
-      appartenances.map((appartenance) =>
-        envoyerEmail({
-          to: appartenance.utilisateur.mail,
-          subject: `Nouvel événement — ${lieu}`,
-          html: `<p>Bonjour ${appartenance.utilisateur.nomPrenom},</p><p>Un nouvel événement (${typeValue.toLowerCase()}) a été créé au ${lieu}.</p><p><a href="${lienEvenement}">Voir l'événement et confirmer ta présence</a></p>`,
-        }),
-      ),
-    );
   }
 
   redirect(`/equipes/${equipeId}/evenements/${evenement.id}`);
@@ -102,7 +88,7 @@ export default async function CreationEvenementPage({
     <>
       <PageHeader
         title="Créer un événement"
-        description="Type, lieu, durée, programme et objectif. Les membres de l'équipe seront invités par défaut et recevront un email de notification."
+        description="Type, lieu, durée, programme et objectif. Les membres de l'équipe seront invités par défaut (le récapitulatif par email suit le jour d'envoi configuré dans Gestion de l'équipe)."
       />
       <form action={creer} className="flex max-w-lg flex-col gap-4">
         <div className="flex flex-col gap-1">

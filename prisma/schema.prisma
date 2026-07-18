@@ -43,6 +43,16 @@ enum StatutPresence {
   INFIRME
 }
 
+enum JourSemaine {
+  LUNDI
+  MARDI
+  MERCREDI
+  JEUDI
+  VENDREDI
+  SAMEDI
+  DIMANCHE
+}
+
 // --- Modèles ---------------------------------------------------------------
 
 model Utilisateur {
@@ -80,8 +90,9 @@ model TokenReinitialisation {
 }
 
 model Equipe {
-  id  String @id @default(cuid())
-  nom String @unique
+  id                      String       @id @default(cuid())
+  nom                     String       @unique
+  jourEnvoiMailEvenements JourSemaine?
 
   appartenances Appartenance[]
   evenements    Evenement[]
